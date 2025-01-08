@@ -1,0 +1,51 @@
+﻿@page "/recipes"
+@rendermode InteractiveServer
+@using ManagedRedisLevelUp.Shared
+@using Microsoft.AspNetCore.Components.Forms
+
+<EditForm Model="@recipe" OnValidSubmit="@HandleValidSubmit">
+  <DataAnnotationsValidator />
+  <ValidationSummary />
+
+  <div>
+    <label for="name">Name:</label>
+    <InputText id="name" @bind-Value="@recipe.Name" class="form-control" />
+  </div>
+  <div>
+    <label for="ingredients">Ingredients:</label>
+    <InputTextArea id="ingredients" @bind-Value="@recipe.Ingredients" class="form-control" />
+  </div>
+  <div>
+    <label for="instructions">Instructions:</label>
+    <InputTextArea id="instructions" @bind-Value="@recipe.Instructions" class="form-control" />
+  </div>
+
+  <div class="mt-2">
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </div>
+</EditForm>
+
+@code {
+  private NewRecipe recipe = new();
+
+  private void HandleValidSubmit()
+  {
+    // Handle the form submission, e.g., save the recipe to the database
+    Console.WriteLine("Recipe submitted successfully!");
+  }
+
+  public class NewRecipe
+  {
+    public string Name { get; set; } = string.Empty;
+    public string Ingredients { get; set; } = string.Empty;
+    public string Instructions { get; set; } = string.Empty;
+
+    public Recipe ToRecipe() => new()
+      {
+        Key = Guid.NewGuid().ToString(),
+        Name = Name,
+        Ingredients = Ingredients,
+        Instructions = Instructions
+      };
+  }
+}

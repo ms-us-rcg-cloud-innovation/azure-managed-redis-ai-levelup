@@ -1,17 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>0bb01a9c-a3bb-4bf6-9443-527ebcf00931</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ManagedRedisLevelUp.ServiceDefaults\ManagedRedisLevelUp.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\ManagedRedisLevelUp.Shared\ManagedRedisLevelUp.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="9.0.0" />
+    <PackageReference Include="Azure.Identity" Version="1.13.1" />
   </ItemGroup>
 
 </Project>

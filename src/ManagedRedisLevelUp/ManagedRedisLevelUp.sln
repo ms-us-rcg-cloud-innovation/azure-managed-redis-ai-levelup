@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35506.116 d17.12
+VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedRedisLevelUp.AppHost", "ManagedRedisLevelUp.AppHost\ManagedRedisLevelUp.AppHost.csproj", "{D7367E0D-128B-4993-9B29-483D0D3CC700}"
 EndProject
@@ -9,6 +9,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedRedisLevelUp.ApiService", "ManagedRedisLevelUp.ApiService\ManagedRedisLevelUp.ApiService.csproj", "{A44CB8CB-AE08-460A-BC90-8455377F13B9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedRedisLevelUp.Web", "ManagedRedisLevelUp.Web\ManagedRedisLevelUp.Web.csproj", "{7F026958-1B31-4AC6-B399-2D49EA83EED0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedRedisLevelUp.Shared", "ManagedRedisLevelUp.Shared\ManagedRedisLevelUp.Shared.csproj", "{0D7DD706-296E-4DCE-8FEB-51D526BBEED5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +34,10 @@ Global
 		{7F026958-1B31-4AC6-B399-2D49EA83EED0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F026958-1B31-4AC6-B399-2D49EA83EED0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F026958-1B31-4AC6-B399-2D49EA83EED0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D7DD706-296E-4DCE-8FEB-51D526BBEED5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D7DD706-296E-4DCE-8FEB-51D526BBEED5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D7DD706-296E-4DCE-8FEB-51D526BBEED5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D7DD706-296E-4DCE-8FEB-51D526BBEED5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
