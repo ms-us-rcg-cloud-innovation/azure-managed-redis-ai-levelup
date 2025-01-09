@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @using ManagedRedisLevelUp.Shared
 @using Microsoft.AspNetCore.Components.Forms
+@inject RecipeApiClient RecipeApiClient
 
 <EditForm Model="@recipe" OnValidSubmit="@HandleValidSubmit">
   <DataAnnotationsValidator />
@@ -25,13 +26,29 @@
   </div>
 </EditForm>
 
+<div>
+  <label for="key">Recipe Key:</label>
+  <input id="key" @bind="@RecipeKey" class="form-control" />
+</div>
+<button type="button" class="btn btn-secondary" @onclick="GetRecipe">Get Recipe</button>
+
+<pre>@recipeResponse</pre>
+
 @code {
   private NewRecipe recipe = new();
+  private string recipeResponse = string.Empty;
+  private string RecipeKey = string.Empty;
 
-  private void HandleValidSubmit()
+  private async Task HandleValidSubmit()
   {
-    // Handle the form submission, e.g., save the recipe to the database
-    Console.WriteLine("Recipe submitted successfully!");
+    var response = await RecipeApiClient.CreateRecipeAsync(recipe.ToRecipe());
+    recipeResponse = response;
+  }
+
+  private async Task GetRecipe()
+  {
+    var response = await RecipeApiClient.GetRecipeAsync(RecipeKey);
+    recipeResponse = $"Key: {response.Key}, Name: {response.Name}, Ingredients: {response.Ingredients}, Instruction: {response.Instructions}";
   }
 
   public class NewRecipe

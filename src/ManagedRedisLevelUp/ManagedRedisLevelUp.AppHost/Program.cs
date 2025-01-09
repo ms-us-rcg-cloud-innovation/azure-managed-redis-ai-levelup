@@ -15,7 +15,7 @@ var serviceBus = builder.ExecutionContext.IsPublishMode
   : builder.AddConnectionString("messaging");
 
 var openai = builder.ExecutionContext.IsPublishMode
-  ? builder.AddAzureOpenAI("openAi")
+  ? builder.AddAzureOpenAIWithKeyBasedAuth("openAi")
       .AddDeployment(new AzureOpenAIDeployment("embedding", "text-embedding-ada-002", "2"))
       .AddDeployment(new AzureOpenAIDeployment("chat", "gpt-4o", "2024-08-06"))
   : builder.AddConnectionString("openAi");

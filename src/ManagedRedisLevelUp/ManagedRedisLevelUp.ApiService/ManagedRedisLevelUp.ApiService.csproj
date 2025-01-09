@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Azure.AI.OpenAI" Version="9.0.0-preview.5.24551.3" />
     <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" Version="9.0.0" />
+    <PackageReference Include="Aspire.Azure.Search.Documents" Version="9.0.0" />
     <PackageReference Include="Aspire.Azure.Security.KeyVault" Version="9.0.0" />
     <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />

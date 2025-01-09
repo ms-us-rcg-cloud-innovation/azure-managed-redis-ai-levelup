@@ -1,5 +1,6 @@
 using Azure.AI.OpenAI;
 using ManagedRedisLevelUp.ApiService.Services;
+using ManagedRedisLevelUp.Shared;
 using Microsoft.SemanticKernel;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,39 +23,29 @@ builder.AddRedisOutputCache(connectionName: "cache");
 // Add OpenAIClient from the Aspire client integrations.
 builder.AddAzureOpenAIClient("openAi");
 
+//// Add SearchIndexClient from the Aspire client integrations.
+//builder.AddAzureSearchClient("search");
+
 builder.Services.AddScoped((serviceProvider) =>
 {
+  var azureOpenAIClient = serviceProvider.GetRequiredService<AzureOpenAIClient>();
+
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
   var kernel = Kernel.CreateBuilder()
-    //.AddInMemoryVectorStore()
     .AddRedisVectorStore(builder.Configuration["REDIS_CONNECTION_STRING"]
       ?? throw new InvalidOperationException("The configuration value for 'REDIS_CONNECTION_STRING' is missing or null"))
     .AddAzureOpenAITextEmbeddingGeneration(
       builder.Configuration["EMBEDDING_DEPLOYMENT_NAME"]
         ?? throw new InvalidOperationException("The configuration value for 'EMBEDDING_DEPLOYMENT_NAME' is missing or null."),
-      azureOpenAIClient: serviceProvider.GetRequiredService<AzureOpenAIClient>()
-    //builder.Configuration["EMBEDDING_DEPLOYMENT_NAME"] 
-    //  ?? throw new InvalidOperationException("The configuration value for 'EMBEDDING_DEPLOYMENT_NAME' is missing or null."),
-    //builder.Configuration["AOAI_ENDPOINT"]
-    //  ?? throw new InvalidOperationException("The configuration value for 'AOAI_ENDPOINT' is missing or null."),
-    //builder.Configuration["AOAI_API_KEY"]
-    //  ?? throw new InvalidOperationException("The configuration value for 'AOAI_API_KEY' is missing or null.")
+      azureOpenAIClient: azureOpenAIClient
     )
     .AddAzureOpenAIChatCompletion(
       builder.Configuration["CHAT_DEPLOYMENT_NAME"]
         ?? throw new InvalidOperationException("The configuration value for 'AOAI_CHAT_DEPLOYMENT_NAME' is missing or null"),
-      azureOpenAIClient: serviceProvider.GetRequiredService<AzureOpenAIClient>()
+      azureOpenAIClient: azureOpenAIClient
     );
-  //builder.Configuration["AOAI_CHAT_DEPLOYMENT_NAME"]
-  //  ?? throw new InvalidOperationException("The configuration value for 'AOAI_CHAT_DEPLOYMENT_NAME' is missing or null"),
-  //builder.Configuration["AOAI_ENDPOINT"]
-  //  ?? throw new InvalidOperationException("The configuration value for 'AOAI_ENDPOINT' is missing or null."),
-  //builder.Configuration["AOAI_API_KEY"]
-  //  ?? throw new InvalidOperationException("The configuration value for 'AOAI_API_KEY' is missing or null."));
 
-  kernel.Services.AddSingleton<ParagraphService>();
-  kernel.Services.AddSingleton<ChatService>();
-  kernel.Services.AddSingleton<ChatCacheService>();
+  kernel.Services.AddSingleton<RecipeService>();
   return kernel.Build();
 });
 
@@ -93,6 +84,30 @@ app.MapGet("/weatherforecast", () =>
     policy.Expire(TimeSpan.FromSeconds(5));
   })
   .WithName("GetWeatherForecast");
+
+app.MapGet("/recipes", async (Kernel kernel) =>
+{
+  RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
+  var recipeResponse = await svc.GetRecipeAsync("recipes", "blah");
+  return recipeResponse;
+})
+  .WithName("Get Recipes");
+
+app.MapGet("/recipes/{key}", async (Kernel kernel, string key) =>
+{
+  RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
+  var recipeResponse = await svc.GetRecipeAsync("recipes", key);
+  return recipeResponse;
+})
+  .WithName("Get Recipe");
+
+app.MapPost("/recipes", async (Kernel kernel, Recipe recipe) =>
+{
+  RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
+  await svc.GenerateEmbeddingsAndUpload("recipes", [recipe]);
+  return Results.Created("/recipes", recipe);
+})
+  .WithName("Create Recipe");
 
 app.MapDefaultEndpoints();
 

@@ -1,8 +1,6 @@
+using ManagedRedisLevelUp.Shared;
 using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel.Embeddings;
-using Microsoft.SemanticKernel.Connectors.Redis;
-using ManagedRedisLevelUp.ApiService.Models;
-using ManagedRedisLevelUp.Shared;
 
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
@@ -14,6 +12,7 @@ internal class RecipeService(
 {
   public async Task<Recipe> GetRecipeAsync(string collectionName, string keyId)
   {
+    //return new Recipe() { Ingredients = collectionName, Instructions = keyId, Key = "Test", Name = "Test" };
     var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
 
     var options = new GetRecordOptions() { IncludeVectors = true };
@@ -72,8 +71,6 @@ internal class RecipeService(
       // Upload the recipe.
       Console.WriteLine($"Upserting recipe: {recipe.Key}");
       await collection.UpsertAsync(recipe);
-
-      Console.WriteLine();
     }
   }
 }
