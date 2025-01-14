@@ -37,4 +37,15 @@ public class RecipeApiClient(HttpClient httpClient)
     
     return await response.Content.ReadAsStringAsync();
   }
+
+  public async Task<IEnumerable<Recipe>> SearchRecipesAsync(string query, CancellationToken cancellationToken = default)
+  {
+    var response = await httpClient.GetFromJsonAsync<List<RecipeSearchResponse>>($"/recipes/search/{query}", cancellationToken) ?? [];
+    if (response.Count == 0)
+    {
+      Console.WriteLine("No recipes found");
+    }
+    var recipeList = response.Select(r => r.AsRecipe());
+    return recipeList;
+  }
 }

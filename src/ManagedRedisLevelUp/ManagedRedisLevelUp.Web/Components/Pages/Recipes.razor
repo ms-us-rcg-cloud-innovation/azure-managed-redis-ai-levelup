@@ -22,33 +22,63 @@
   </div>
 
   <div class="mt-2">
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary">Create Recipe</button>
   </div>
 </EditForm>
 
-<div>
+<div class="mt-2">
   <label for="key">Recipe Key:</label>
   <input id="key" @bind="@RecipeKey" class="form-control" />
 </div>
-<button type="button" class="btn btn-secondary" @onclick="GetRecipe">Get Recipe</button>
+<button type="button" class="btn btn-secondary mt-2" @onclick="GetRecipe">Get Recipe</button>
 
-<pre>@recipeResponse</pre>
+<div class="mt-2">
+  <label for="search">Search:</label>
+  <input id="search" class="form-control" @bind="SearchString" />
+</div>
+<button type="button" class="btn btn-secondary mt-2" @onclick="SearchRecipes">Search Recipes</button>
+
+@if (RecipeList.Count > 0)
+{
+  <h3 class="mt-5">Results</h3>
+  <div class="d-flex">
+    @foreach (var recipe in RecipeList)
+    {
+      <RecipeCard Recipe="@recipe" />
+    }
+  </div>
+}
+
+@* <pre>@recipeResponse</pre> *@
 
 @code {
   private NewRecipe recipe = new();
   private string recipeResponse = string.Empty;
   private string RecipeKey = string.Empty;
+  private string SearchString = string.Empty;
+  private List<Recipe> RecipeList = new();
 
   private async Task HandleValidSubmit()
   {
     var response = await RecipeApiClient.CreateRecipeAsync(recipe.ToRecipe());
     recipeResponse = response;
+    recipe = new();
   }
 
   private async Task GetRecipe()
   {
     var response = await RecipeApiClient.GetRecipeAsync(RecipeKey);
-    recipeResponse = $"Key: {response.Key}, Name: {response.Name}, Ingredients: {response.Ingredients}, Instruction: {response.Instructions}";
+    recipeResponse = $"Key: {response.Key}\n\nName: {response.Name}\n\nIngredients: {response.Ingredients}\n\nInstructions: {response.Instructions}";
+    RecipeList.Clear();
+    RecipeList.Add(response);
+  }
+
+  private async Task SearchRecipes()
+  {
+    var response = await RecipeApiClient.SearchRecipesAsync(SearchString);
+    recipeResponse = string.Join(Environment.NewLine, response.Select(r => $"Key: {r.Key}\n\nName: {r.Name}\n\nIngredients: {r.Ingredients}, Instruction: {r.Instructions}"));
+    RecipeList.Clear();
+    RecipeList.AddRange(response);
   }
 
   public class NewRecipe

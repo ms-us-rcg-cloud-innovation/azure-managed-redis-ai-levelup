@@ -1,0 +1,27 @@
+﻿@using ManagedRedisLevelUp.Shared
+@inherits ComponentBase
+
+<div class="recipe-card">
+  <div class="card-header">
+    <h3>@Recipe.Name</h3>
+  </div>
+  <div class="card-body">
+    <p><strong>Ingredients:</strong> <pre>@Recipe.Ingredients</pre></p>
+    <p><strong>Instructions:</strong> @Recipe.Instructions</p>
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public Recipe Recipe { get; set; }
+
+  public List<string> FormattedIngredients() 
+  {
+    return Recipe.Ingredients.Split(Environment.NewLine).ToList();
+  }
+
+  public string FormattedInstructions()
+  {
+    return Recipe.Instructions.Replace(Environment.NewLine, "<br />");
+  }
+}

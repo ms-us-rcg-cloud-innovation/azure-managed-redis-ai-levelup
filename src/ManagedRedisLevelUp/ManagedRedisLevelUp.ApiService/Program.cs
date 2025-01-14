@@ -101,10 +101,20 @@ app.MapGet("/recipes/{key}", async (Kernel kernel, string key) =>
 })
   .WithName("Get Recipe");
 
+app.MapGet("/recipes/search/{query}", async (Kernel kernel, string query) =>
+{
+  RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
+  var recipeResponse = await svc.SearchRecipesAsync("recipes", query);
+  return recipeResponse;
+})
+  .WithName("Search Recipes");
+
 app.MapPost("/recipes", async (Kernel kernel, Recipe recipe) =>
 {
   RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
-  await svc.GenerateEmbeddingsAndUpload("recipes", [recipe]);
+  List<Recipe> recipes = [recipe];
+  recipes = (await svc.GenerateEmbeddingsAsync(recipes)).ToList();
+  await svc.UploadRecipesAsync("recipes", [recipe]);
   return Results.Created("/recipes", recipe);
 })
   .WithName("Create Recipe");

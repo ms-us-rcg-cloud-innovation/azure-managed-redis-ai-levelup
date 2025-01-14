@@ -12,7 +12,6 @@ internal class RecipeService(
 {
   public async Task<Recipe> GetRecipeAsync(string collectionName, string keyId)
   {
-    //return new Recipe() { Ingredients = collectionName, Instructions = keyId, Key = "Test", Name = "Test" };
     var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
 
     var options = new GetRecordOptions() { IncludeVectors = true };
@@ -33,8 +32,8 @@ internal class RecipeService(
 
     var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
     var searchResult = await collection.VectorizedSearchAsync(searchVector, vectorSearchOptions, new CancellationToken());
-
-    List<RecipeSearchResponse> recipeResponses = new List<RecipeSearchResponse>();
+    
+    List<RecipeSearchResponse> recipeResponses = [];
 
     await foreach (var result in searchResult.Results)
     {
@@ -45,6 +44,7 @@ internal class RecipeService(
 
       recipeResponses.Add(new RecipeSearchResponse
       {
+        Key = result.Record.Key,
         Name = result.Record.Name,
         Ingredients = result.Record.Ingredients,
         Instructions = result.Record.Instructions,
@@ -55,7 +55,7 @@ internal class RecipeService(
     return recipeResponses;
   }
 
-  public async Task GenerateEmbeddingsAndUpload(string collectionName, List<Recipe> recipes)
+  public async Task UploadRecipesAsync(string collectionName, List<Recipe> recipes)
   {
     var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
 
@@ -63,14 +63,20 @@ internal class RecipeService(
 
     foreach (var recipe in recipes)
     {
+      // Upload the recipe.
+      Console.WriteLine($"Upserting recipe: {recipe.Key}");
+      await collection.UpsertAsync(recipe);      
+    }
+  }
+
+  public async Task<IEnumerable<Recipe>> GenerateEmbeddingsAsync(IEnumerable<Recipe> recipes)
+  {
+    foreach (var recipe in recipes)
+    {
       // Generate the recipe embedding.
       Console.WriteLine($"Generating embedding for recipe: {recipe.Key}");
       recipe.RecipeEmbedding = await textEmbeddingGenerationService.GenerateEmbeddingAsync($"{recipe.Name} {recipe.Ingredients} {recipe.Instructions}");
-      TimeSpan ttl = TimeSpan.FromMinutes(30);
-
-      // Upload the recipe.
-      Console.WriteLine($"Upserting recipe: {recipe.Key}");
-      await collection.UpsertAsync(recipe);
     }
+    return recipes;
   }
 }
