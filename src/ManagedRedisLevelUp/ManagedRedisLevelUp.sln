@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedRedisLevelUp.Web", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedRedisLevelUp.Shared", "ManagedRedisLevelUp.Shared\ManagedRedisLevelUp.Shared.csproj", "{0D7DD706-296E-4DCE-8FEB-51D526BBEED5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedRedisLevelUp.LoadData", "ManagedRedisLevelUp.LoadData\ManagedRedisLevelUp.LoadData.csproj", "{7A030D2D-EE42-466E-8730-C88499049758}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{0D7DD706-296E-4DCE-8FEB-51D526BBEED5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D7DD706-296E-4DCE-8FEB-51D526BBEED5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D7DD706-296E-4DCE-8FEB-51D526BBEED5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A030D2D-EE42-466E-8730-C88499049758}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A030D2D-EE42-466E-8730-C88499049758}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A030D2D-EE42-466E-8730-C88499049758}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A030D2D-EE42-466E-8730-C88499049758}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
