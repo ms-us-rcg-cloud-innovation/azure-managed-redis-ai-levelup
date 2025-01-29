@@ -1,14 +1,16 @@
 using ManagedRedisLevelUp.Shared;
 using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel.Embeddings;
+using StackExchange.Redis;
 
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 namespace ManagedRedisLevelUp.ApiService.Services;
 
 internal class RecipeService(
-    IVectorStore vectorStore,
-    ITextEmbeddingGenerationService textEmbeddingGenerationService)
+  IVectorStore vectorStore,
+  ITextEmbeddingGenerationService textEmbeddingGenerationService,
+  IConnectionMultiplexer redisConnection)
 {
   public async Task<Recipe> GetRecipeAsync(string collectionName, string keyId)
   {
@@ -19,7 +21,31 @@ internal class RecipeService(
     return recipe;
   }
 
-  public async Task<List<RecipeSearchResponse>> SearchRecipesAsync(string collectionName, string searchString)
+  public async IAsyncEnumerable<Recipe> GetRecipesAsync(string collectionName, int numOfRecords = 10)
+  {
+    var endpoints = redisConnection.GetEndPoints();
+    var keys = redisConnection.GetServer(endpoints.First()).KeysAsync(pageSize: numOfRecords);
+
+    var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
+
+    int count = 0;
+    await foreach (var key in keys)
+    {
+      if (count >= numOfRecords)
+      {
+        break;
+      }
+      var keyString = key.ToString();
+      var keyGuid = keyString.Substring(keyString.IndexOf(':') + 1);
+      var recipe = await collection.GetAsync(keyGuid);
+      if (recipe != null)
+      {
+        yield return recipe;
+      }
+    }
+  }
+
+  public async IAsyncEnumerable<Recipe> SearchRecipesAsync(string collectionName, string searchString)
   {
     var searchVector = await textEmbeddingGenerationService.GenerateEmbeddingAsync(searchString);
     var vectorSearchOptions = new VectorSearchOptions
@@ -32,8 +58,6 @@ internal class RecipeService(
 
     var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
     var searchResult = await collection.VectorizedSearchAsync(searchVector, vectorSearchOptions, new CancellationToken());
-    
-    List<RecipeSearchResponse> recipeResponses = [];
 
     await foreach (var result in searchResult.Results)
     {
@@ -42,17 +66,8 @@ internal class RecipeService(
       Console.WriteLine($"Key: {result.Record.Key}");
       Console.WriteLine("=========");
 
-      recipeResponses.Add(new RecipeSearchResponse
-      {
-        Key = result.Record.Key,
-        Name = result.Record.Name,
-        Ingredients = result.Record.Ingredients,
-        Instructions = result.Record.Instructions,
-        Score = result.Score
-      });
+      yield return result.Record;
     }
-
-    return recipeResponses;
   }
 
   public async Task UploadRecipesAsync(string collectionName, List<Recipe> recipes)
@@ -65,7 +80,7 @@ internal class RecipeService(
     {
       // Upload the recipe.
       Console.WriteLine($"Upserting recipe: {recipe.Key}");
-      await collection.UpsertAsync(recipe);      
+      await collection.UpsertAsync(recipe);
     }
   }
 
@@ -75,8 +90,15 @@ internal class RecipeService(
     {
       // Generate the recipe embedding.
       Console.WriteLine($"Generating embedding for recipe: {recipe.Key}");
-      recipe.RecipeEmbedding = await textEmbeddingGenerationService.GenerateEmbeddingAsync($"{recipe.Name} {recipe.Ingredients} {recipe.Instructions}");
+      recipe.RecipeEmbedding = await textEmbeddingGenerationService.GenerateEmbeddingAsync(recipe.GetEmbeddingString());
     }
     return recipes;
+  }
+
+  public int GetRecipeCount()
+  {
+    var endpoints = redisConnection.GetEndPoints();
+    var keys = redisConnection.GetServer(endpoints.First()).Keys();
+    return keys.Count();
   }
 }

@@ -1,7 +1,14 @@
 using Azure.AI.OpenAI;
+using Azure.Identity;
 using ManagedRedisLevelUp.ApiService.Services;
 using ManagedRedisLevelUp.Shared;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Embeddings;
+using StackExchange.Redis;
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,9 +37,10 @@ builder.Services.AddScoped((serviceProvider) =>
 {
   var azureOpenAIClient = serviceProvider.GetRequiredService<AzureOpenAIClient>();
 
-#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+  var connectionMultiplexer = serviceProvider.GetRequiredService<IConnectionMultiplexer>();
+
   var kernel = Kernel.CreateBuilder()
-    .AddRedisVectorStore(builder.Configuration["REDIS_CONNECTION_STRING"]
+    .AddRedisVectorStore(connectionMultiplexer.Configuration
       ?? throw new InvalidOperationException("The configuration value for 'REDIS_CONNECTION_STRING' is missing or null"))
     .AddAzureOpenAITextEmbeddingGeneration(
       builder.Configuration["EMBEDDING_DEPLOYMENT_NAME"]
@@ -45,8 +53,19 @@ builder.Services.AddScoped((serviceProvider) =>
       azureOpenAIClient: azureOpenAIClient
     );
 
-  kernel.Services.AddSingleton<RecipeService>();
   return kernel.Build();
+});
+
+builder.Services.AddScoped<RecipeService>(svcProvider =>
+{
+  var kernel = svcProvider.GetRequiredService<Kernel>();
+
+  var svc = new RecipeService(
+    kernel.GetRequiredService<IVectorStore>(),
+    kernel.GetRequiredService<ITextEmbeddingGenerationService>(),
+    svcProvider.GetRequiredService<IConnectionMultiplexer>()
+  );
+  return svc;
 });
 
 // Rregister a ServiceBusClient for use via the dependency injection container
@@ -85,36 +104,39 @@ app.MapGet("/weatherforecast", () =>
   })
   .WithName("GetWeatherForecast");
 
-app.MapGet("/recipes", async (Kernel kernel) =>
+app.MapGet("/recipes", async (RecipeService recipeService) =>
 {
-  RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
-  var recipeResponse = await svc.GetRecipeAsync("recipes", "blah");
-  return recipeResponse;
+  //RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
+  var recipeResponse = recipeService.GetRecipesAsync("recipes");
+  return Results.Ok(recipeResponse);
 })
   .WithName("Get Recipes");
 
-app.MapGet("/recipes/{key}", async (Kernel kernel, string key) =>
+app.MapGet("/recipes/{key}", async ([FromServices] RecipeService recipeService, string key) =>
 {
-  RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
-  var recipeResponse = await svc.GetRecipeAsync("recipes", key);
-  return recipeResponse;
+  var recipeResponse = await recipeService.GetRecipeAsync("recipes", key);
+  return Results.Ok(recipeResponse);
 })
   .WithName("Get Recipe");
 
-app.MapGet("/recipes/search/{query}", async (Kernel kernel, string query) =>
+app.MapGet("/recipes/search/{query}", async ([FromServices] RecipeService recipeService, string query) =>
 {
-  RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
-  var recipeResponse = await svc.SearchRecipesAsync("recipes", query);
-  return recipeResponse;
+  var recipeResponse = recipeService.SearchRecipesAsync("recipes", query);
+  return Results.Ok(recipeResponse);
 })
   .WithName("Search Recipes");
 
-app.MapPost("/recipes", async (Kernel kernel, Recipe recipe) =>
+app.MapGet("/recipes/count", async ([FromServices] RecipeService recipeService) =>
 {
-  RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
+  return Results.Ok(recipeService.GetRecipeCount());
+})
+  .WithName("Get Recipe Count");
+
+app.MapPost("/recipes", async ([FromServices] RecipeService recipeService, Recipe recipe) =>
+{
   List<Recipe> recipes = [recipe];
-  recipes = (await svc.GenerateEmbeddingsAsync(recipes)).ToList();
-  await svc.UploadRecipesAsync("recipes", [recipe]);
+  recipes = (await recipeService.GenerateEmbeddingsAsync(recipes)).ToList();
+  await recipeService.UploadRecipesAsync("recipes", [recipe]);
   return Results.Created("/recipes", recipe);
 })
   .WithName("Create Recipe");

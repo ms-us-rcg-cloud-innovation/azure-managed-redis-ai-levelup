@@ -8,17 +8,39 @@
   <DataAnnotationsValidator />
   <ValidationSummary />
 
-  <div>
+  <div class="my-2">
     <label for="name">Name:</label>
     <InputText id="name" @bind-Value="@recipe.Name" class="form-control" />
   </div>
-  <div>
-    <label for="ingredients">Ingredients:</label>
-    <InputTextArea id="ingredients" @bind-Value="@recipe.Ingredients" class="form-control" />
+  <div class="my-2">
+    <label for="totalTimeInMinutes">Total Time (in minutes):</label>
+    <InputNumber id="totalTimeInMinutes" @bind-Value="@recipe.TotalTimeInMinutes" class="form-control" />
   </div>
-  <div>
-    <label for="instructions">Instructions:</label>
-    <InputTextArea id="instructions" @bind-Value="@recipe.Instructions" class="form-control" />
+  <div class="my-2">
+    <label for="description">Description:</label>
+    <InputTextArea id="description" @bind-Value="@recipe.Description" class="form-control" />
+  </div>
+  <div class="my-2">
+    <label for="ingredients">Ingredients:</label>
+    @for (int i = 0; i < recipe.Ingredients.Count; i++)
+    {
+      <div class="input-group mb-2">
+        <input type="text" value="@recipe.Ingredients[i]" @oninput="(e) => UpdateIngredient(e, i - 1)" class="form-control" />
+        <button type="button" class="btn btn-danger" @onclick="() => RemoveIngredient(i)">Remove</button>
+      </div>
+    }
+    <button type="button" class="btn btn-secondary mx-2" @onclick="AddIngredient">Add Ingredient</button>
+  </div>
+  <div class="my-2">
+    <label for="steps">Steps:</label>
+    @for (int i = 0; i < recipe.Steps.Count; i++)
+    {
+      <div class="input-group mb-2">
+        <input type="text" value="@recipe.Steps[i]" @oninput="(e) => UpdateStep(e, i - 1)" class="form-control" />
+        <button type="button" class="btn btn-danger" @onclick="() => RemoveStep(i)">Remove</button>
+      </div>
+    }
+    <button type="button" class="btn btn-secondary mx-2" @onclick="AddStep">Add Step</button>
   </div>
 
   <div class="mt-2">
@@ -26,49 +48,89 @@
   </div>
 </EditForm>
 
-<div class="mt-2">
-  <label for="key">Recipe Key:</label>
-  <input id="key" @bind="@RecipeKey" class="form-control" />
-</div>
-<button type="button" class="btn btn-secondary mt-2" @onclick="GetRecipe">Get Recipe</button>
+<EditForm Model="RecipeKey" OnValidSubmit="GetRecipe">
+  <div class="my-4">
+    <label for="key">Get Recipe By Key:</label>
+    <input id="key" @bind="@RecipeKey" class="form-control" />
+    <button type="submit" class="btn btn-primary mt-2" @onclick="GetRecipe">Get Recipe</button>
+  </div>
+</EditForm>
 
-<div class="mt-2">
-  <label for="search">Search:</label>
-  <input id="search" class="form-control" @bind="SearchString" />
-</div>
-<button type="button" class="btn btn-secondary mt-2" @onclick="SearchRecipes">Search Recipes</button>
+<EditForm Model="SearchString" OnValidSubmit="SearchRecipes">
+  <div class="my-4">
+    <div>
+      <label for="search">Search:</label>
+      <input id="search" class="form-control" @bind="SearchString" />
+    </div>
+
+    <div class="d-flex mt-2">
+      <button type="submit" class="btn btn-primary mr-2" @onclick="SearchRecipes">Search Recipes</button>
+
+      <div class="mx-2">
+        <button type="button" class="btn btn-secondary" @onclick="GetRecipes">Get 10 Recipes</button>
+      </div>
+
+      <div class="mx-2">
+        <button type="button" class="btn btn-secondary" @onclick="() => Clear()">Clear Results</button>
+      </div>
+    </div>
+  </div>
+</EditForm>
 
 @if (RecipeList.Count > 0)
 {
   <h3 class="mt-5">Results</h3>
-  <div class="d-flex">
+  <div class="d-flex flex-wrap">
     @foreach (var recipe in RecipeList)
     {
-      <RecipeCard Recipe="@recipe" />
+      <RecipeCard Recipe="@recipe" EditRecipe="SetEditRecipe" />
     }
   </div>
 }
 
+<pre>@ErrorMessage</pre>
 @* <pre>@recipeResponse</pre> *@
 
 @code {
-  private NewRecipe recipe = new();
+  private Recipe recipe = new();
   private string recipeResponse = string.Empty;
   private string RecipeKey = string.Empty;
   private string SearchString = string.Empty;
   private List<Recipe> RecipeList = new();
+  private string ErrorMessage = string.Empty;
 
   private async Task HandleValidSubmit()
   {
-    var response = await RecipeApiClient.CreateRecipeAsync(recipe.ToRecipe());
+    var response = await RecipeApiClient.CreateRecipeAsync(recipe);
     recipeResponse = response;
     recipe = new();
+  }
+
+  private async Task Clear()
+  {
+    RecipeList.Clear();
+    recipe = new();
+    SearchString = string.Empty;
+  }
+
+  private async Task GetRecipes()
+  {
+    var response = await RecipeApiClient.GetRecipesAsync();
+    recipeResponse = string.Join(Environment.NewLine, response.Select(r => $"Key: {r.Key}\n\nName: {r.Name}\n\nIngredients: {r.Ingredients}, Instructions: {r.Steps}"));
+    RecipeList.Clear();
+    RecipeList.AddRange(response);
   }
 
   private async Task GetRecipe()
   {
     var response = await RecipeApiClient.GetRecipeAsync(RecipeKey);
-    recipeResponse = $"Key: {response.Key}\n\nName: {response.Name}\n\nIngredients: {response.Ingredients}\n\nInstructions: {response.Instructions}";
+    if (response is null) 
+    {
+      ErrorMessage = $"Recipe not found: {RecipeKey}";
+      return;
+    }
+    recipeResponse = $"Key: {response.Key}\n\nName: {response.Name}\n\nIngredients: {response.Ingredients}\n\nInstructions: {response.Steps}";
+    
     RecipeList.Clear();
     RecipeList.Add(response);
   }
@@ -76,9 +138,45 @@
   private async Task SearchRecipes()
   {
     var response = await RecipeApiClient.SearchRecipesAsync(SearchString);
-    recipeResponse = string.Join(Environment.NewLine, response.Select(r => $"Key: {r.Key}\n\nName: {r.Name}\n\nIngredients: {r.Ingredients}, Instruction: {r.Instructions}"));
+    recipeResponse = string.Join(Environment.NewLine, response.Select(r => $"Key: {r.Key}\n\nName: {r.Name}\n\nIngredients: {r.Ingredients}, Instruction: {r.Steps}"));
     RecipeList.Clear();
     RecipeList.AddRange(response);
+  }
+
+  private void AddIngredient()
+  {
+    recipe.Ingredients.Add(string.Empty);
+  }
+
+  private void RemoveIngredient(int index)
+  {
+    recipe.Ingredients.RemoveAt(index);
+  }
+
+  private void UpdateIngredient(ChangeEventArgs e, int index)
+  {
+    recipe.Ingredients[index] = e.Value.ToString();
+  }
+
+  private void AddStep()
+  {
+    recipe.Steps.Add(string.Empty);
+  }
+
+  private void RemoveStep(int index)
+  {
+    recipe.Steps.RemoveAt(index);
+  }
+
+  private void UpdateStep(ChangeEventArgs e, int index)
+  {
+    recipe.Steps[index] = e.Value.ToString();
+  }
+
+  private void SetEditRecipe(string recipeKey)
+  {
+    recipe = RecipeList.First(r => r.Key == recipeKey);
+    StateHasChanged();
   }
 
   public class NewRecipe
@@ -91,8 +189,8 @@
       {
         Key = Guid.NewGuid().ToString(),
         Name = Name,
-        Ingredients = Ingredients,
-        Instructions = Instructions
+        Ingredients = [Ingredients],
+        Steps = [Instructions]
       };
   }
 }
