@@ -24,27 +24,44 @@
     <label for="ingredients">Ingredients:</label>
     @for (int i = 0; i < recipe.Ingredients.Count; i++)
     {
+      var ingredientIndex = i;
+      var ingredient = recipe.Ingredients[ingredientIndex];
+
       <div class="input-group mb-2">
-        <input type="text" value="@recipe.Ingredients[i]" @oninput="(e) => UpdateIngredient(e, i - 1)" class="form-control" />
-        <button type="button" class="btn btn-danger" @onclick="() => RemoveIngredient(i)">Remove</button>
+        <input type="text" value="@ingredient" @oninput="(e) => UpdateIngredient(e, ingredientIndex)" class="form-control" />
+        <button type="button" class="btn btn-danger" @onclick="() => RemoveIngredient(ingredientIndex)">Remove</button>
       </div>
     }
-    <button type="button" class="btn btn-secondary mx-2" @onclick="AddIngredient">Add Ingredient</button>
+    <button type="button" class="btn btn-sm btn-secondary" @onclick="AddIngredient">Add Ingredient</button>
   </div>
   <div class="my-2">
     <label for="steps">Steps:</label>
     @for (int i = 0; i < recipe.Steps.Count; i++)
     {
+      var stepIndex = i;
+      var step = recipe.Steps[stepIndex];
+
       <div class="input-group mb-2">
-        <input type="text" value="@recipe.Steps[i]" @oninput="(e) => UpdateStep(e, i - 1)" class="form-control" />
-        <button type="button" class="btn btn-danger" @onclick="() => RemoveStep(i)">Remove</button>
+        <input type="text" value="@step" @oninput="(e) => UpdateStep(e, stepIndex)" class="form-control" />
+        <button type="button" class="btn btn-danger" @onclick="() => RemoveStep(stepIndex)">Remove</button>
       </div>
     }
-    <button type="button" class="btn btn-secondary mx-2" @onclick="AddStep">Add Step</button>
+    <button type="button" class="btn btn-sm btn-secondary" @onclick="AddStep">Add Step</button>
   </div>
 
   <div class="mt-2">
-    <button type="submit" class="btn btn-primary">Create Recipe</button>
+    @if (RecipeList.Select(r => r.Key).Contains(recipe.Key))
+    {
+      <button type="submit" class="btn btn-primary">
+        Update Recipe
+      </button>
+    }
+    else
+    {
+      <button type="submit" class="btn btn-primary">
+        Create Recipe
+      </button>
+    }
   </div>
 </EditForm>
 
@@ -124,13 +141,13 @@
   private async Task GetRecipe()
   {
     var response = await RecipeApiClient.GetRecipeAsync(RecipeKey);
-    if (response is null) 
+    if (response is null)
     {
       ErrorMessage = $"Recipe not found: {RecipeKey}";
       return;
     }
     recipeResponse = $"Key: {response.Key}\n\nName: {response.Name}\n\nIngredients: {response.Ingredients}\n\nInstructions: {response.Steps}";
-    
+
     RecipeList.Clear();
     RecipeList.Add(response);
   }
