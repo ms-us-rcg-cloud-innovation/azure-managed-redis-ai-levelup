@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.33.0" />
+    <PackageReference Include="Redis.OM" Version="0.7.6" />
+    <PackageReference Include="Redis.OM.Vectorizers" Version="0.7.6" />
   </ItemGroup>
 
 </Project>

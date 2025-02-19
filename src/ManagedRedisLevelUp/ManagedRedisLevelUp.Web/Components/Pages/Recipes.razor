@@ -50,7 +50,7 @@
   </div>
 
   <div class="mt-2">
-    @if (RecipeList.Select(r => r.Key).Contains(recipe.Key))
+    @if (RecipeList.Any(r => r.Key == recipe.Key))
     {
       <button type="submit" class="btn btn-primary">
         Update Recipe

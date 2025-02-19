@@ -10,6 +10,8 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.AddRedisOutputCache(connectionName: "cache");
+
 builder.Services.AddHttpClient<WeatherApiClient>(client =>
     {
       // This URL uses "https+http://" to indicate HTTPS is preferred over HTTP.

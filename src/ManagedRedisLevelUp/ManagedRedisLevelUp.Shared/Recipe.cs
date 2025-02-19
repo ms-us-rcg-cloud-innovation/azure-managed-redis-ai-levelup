@@ -1,35 +1,39 @@
-﻿using Microsoft.Extensions.VectorData;
+﻿using Redis.OM;
+using Redis.OM.Modeling;
+using Redis.OM.Vectorizers;
+
 namespace ManagedRedisLevelUp.Shared;
 
+[Document(StorageType = StorageType.Json, Prefixes = ["Recipes"])]
 public class Recipe
 {
-  [VectorStoreRecordKey]
+  [RedisIdField]
   public string Key { get; set; } = Guid.NewGuid().ToString();
 
-  [VectorStoreRecordData]
   public string Name { get; set; }
 
-  [VectorStoreRecordData]
+  [Indexed(Sortable = true)]
   public DateTime Submitted { get; set; } = DateTime.UtcNow;
 
   /// <summary>
   /// The total time to prepare the recipe.
   /// </summary>
-  [VectorStoreRecordData]
+  [Indexed(Sortable = true)]
   public int TotalTimeInMinutes { get; set; }
 
-  [VectorStoreRecordData]
   public List<string> Steps { get; set; } = [];
 
-  [VectorStoreRecordData]
   public string Description { get; set; }
 
-  [VectorStoreRecordData]
   public List<string> Ingredients { get; set; } = [];
 
-  [VectorStoreRecordVector(Dimensions: 1536)]
-  public ReadOnlyMemory<float> RecipeEmbedding { get; set; } = new float[1536];
+  [Indexed(DistanceMetric = DistanceMetric.COSINE, Algorithm = VectorAlgorithm.HNSW)]
+  [AzureOpenAIVectorizer("embedding", "openaiptcltlcx23xmo", 1536)]
+  public Vector<string> SearchVector { get; set; }
 
-  public string GetEmbeddingString() => 
-    $"Steps: {string.Join(',', Steps)}\nDescription: {Description}\nIngredients: {string.Join(',', Ingredients)}";
+  public void SetVectors()
+  {
+    var searchString = $"<Name> {Name} <Description> {Description} <Ingredients> {string.Join(" ", Ingredients)}";
+    SearchVector = Vector.Of(searchString);
+  }
 }

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>69dc0f7f-fd5a-4d3d-b743-125754e2c241</UserSecretsId>
@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ManagedRedisLevelUp.ApiService\ManagedRedisLevelUp.ApiService.csproj" />
     <ProjectReference Include="..\ManagedRedisLevelUp.Shared\ManagedRedisLevelUp.Shared.csproj" />
   </ItemGroup>
 

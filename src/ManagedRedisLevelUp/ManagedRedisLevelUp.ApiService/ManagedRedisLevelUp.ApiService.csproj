@@ -23,6 +23,8 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.33.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.33.0-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Redis" Version="1.33.0-preview" />
+    <PackageReference Include="Redis.OM" Version="0.7.6" />
+    <PackageReference Include="Redis.OM.Vectorizers" Version="0.7.6" />
   </ItemGroup>
 
 </Project>

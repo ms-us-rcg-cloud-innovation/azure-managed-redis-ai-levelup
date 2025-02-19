@@ -1,14 +1,10 @@
-using Azure.AI.OpenAI;
-using Azure.Identity;
 using ManagedRedisLevelUp.ApiService.Services;
 using ManagedRedisLevelUp.Shared;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.VectorData;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Embeddings;
+using Redis.OM;
+using Redis.OM.Contracts;
+using Redis.OM.Vectorizers;
 using StackExchange.Redis;
-#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +20,7 @@ builder.Services.AddProblemDetails();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Add RedisOutputCache from the Aspire client integrations.
+// Add RedisOutputCache and IConnectionMultiplexer from the Aspire client integrations.
 builder.AddRedisOutputCache(connectionName: "cache");
 
 // Add OpenAIClient from the Aspire client integrations.
@@ -33,38 +29,37 @@ builder.AddAzureOpenAIClient("openAi");
 //// Add SearchIndexClient from the Aspire client integrations.
 //builder.AddAzureSearchClient("search");
 
-builder.Services.AddScoped((serviceProvider) =>
+// Use Aspire-provided Redis IConnectionMultiplexer to get connection string for Redis.OM
+builder.Services.AddSingleton<RedisConnectionProvider>(sp =>
 {
-  var azureOpenAIClient = serviceProvider.GetRequiredService<AzureOpenAIClient>();
+  var aspireRedis = sp.GetRequiredService<IConnectionMultiplexer>();
+  var redisConnectionProvider = new RedisConnectionProvider(aspireRedis);
+  return redisConnectionProvider;
+});
 
-  var connectionMultiplexer = serviceProvider.GetRequiredService<IConnectionMultiplexer>();
+builder.Services.AddSingleton<ISemanticCache>(sp =>
+{
+  var config = builder.Configuration.GetSection("AOAI");
 
-  var kernel = Kernel.CreateBuilder()
-    .AddRedisVectorStore(connectionMultiplexer.Configuration
-      ?? throw new InvalidOperationException("The configuration value for 'REDIS_CONNECTION_STRING' is missing or null"))
-    .AddAzureOpenAITextEmbeddingGeneration(
-      builder.Configuration["EMBEDDING_DEPLOYMENT_NAME"]
-        ?? throw new InvalidOperationException("The configuration value for 'EMBEDDING_DEPLOYMENT_NAME' is missing or null."),
-      azureOpenAIClient: azureOpenAIClient
-    )
-    .AddAzureOpenAIChatCompletion(
-      builder.Configuration["CHAT_DEPLOYMENT_NAME"]
-        ?? throw new InvalidOperationException("The configuration value for 'AOAI_CHAT_DEPLOYMENT_NAME' is missing or null"),
-      azureOpenAIClient: azureOpenAIClient
-    );
-
-  return kernel.Build();
+  var _provider = sp.GetRequiredService<RedisConnectionProvider>();
+  var semanticCache = _provider.AzureOpenAISemanticCache(
+    apiKey: config["KEY"], 
+    resourceName: config["ENDPOINT"], 
+    deploymentId: config["DEPLOYMENT_NAME"], 
+    dim: 1536);
+  return semanticCache;
 });
 
 builder.Services.AddScoped<RecipeService>(svcProvider =>
 {
-  var kernel = svcProvider.GetRequiredService<Kernel>();
-
   var svc = new RecipeService(
-    kernel.GetRequiredService<IVectorStore>(),
-    kernel.GetRequiredService<ITextEmbeddingGenerationService>(),
-    svcProvider.GetRequiredService<IConnectionMultiplexer>()
+    svcProvider.GetRequiredService<IConnectionMultiplexer>(),
+    svcProvider.GetRequiredService<RedisConnectionProvider>(),
+    svcProvider.GetRequiredService<ISemanticCache>()
   );
+
+  svc.InitializeAsync().GetAwaiter().GetResult();
+
   return svc;
 });
 
@@ -84,50 +79,35 @@ if (app.Environment.IsDevelopment())
 // Add OutputCache middleware for Redis provided by Aspire client integrations.
 app.UseOutputCache();
 
-string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
-
-app.MapGet("/weatherforecast", () =>
-{
-  var forecast = Enumerable.Range(1, 5).Select(index =>
-      new WeatherForecast
-      (
-          DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-          Random.Shared.Next(-20, 55),
-          summaries[Random.Shared.Next(summaries.Length)]
-      ))
-      .ToArray();
-  return forecast;
-})
-  .CacheOutput(policy =>
-  {
-    policy.Expire(TimeSpan.FromSeconds(5));
-  })
-  .WithName("GetWeatherForecast");
-
 app.MapGet("/recipes", async (RecipeService recipeService) =>
 {
   //RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
-  var recipeResponse = recipeService.GetRecipesAsync("recipes");
+  //await recipeService.InitializeAsync();
+  var recipeResponse = recipeService.GetRecipesAsync();
   return Results.Ok(recipeResponse);
 })
   .WithName("Get Recipes");
 
 app.MapGet("/recipes/{key}", async ([FromServices] RecipeService recipeService, string key) =>
 {
-  var recipeResponse = await recipeService.GetRecipeAsync("recipes", key);
+  //await recipeService.InitializeAsync();
+  var recipeResponse = await recipeService.GetRecipeAsync(key);
   return Results.Ok(recipeResponse);
 })
   .WithName("Get Recipe");
 
 app.MapGet("/recipes/search/{query}", async ([FromServices] RecipeService recipeService, string query) =>
 {
-  var recipeResponse = recipeService.SearchRecipesAsync("recipes", query);
+  //await recipeService.InitializeAsync();
+  var recipeResponse = recipeService.SearchRecipesAsync(query);
   return Results.Ok(recipeResponse);
 })
+  .CacheOutput()
   .WithName("Search Recipes");
 
 app.MapGet("/recipes/count", async ([FromServices] RecipeService recipeService) =>
 {
+  //await recipeService.InitializeAsync();
   return Results.Ok(recipeService.GetRecipeCount());
 })
   .WithName("Get Recipe Count");
@@ -135,8 +115,7 @@ app.MapGet("/recipes/count", async ([FromServices] RecipeService recipeService) 
 app.MapPost("/recipes", async ([FromServices] RecipeService recipeService, Recipe recipe) =>
 {
   List<Recipe> recipes = [recipe];
-  recipes = (await recipeService.GenerateEmbeddingsAsync(recipes)).ToList();
-  await recipeService.UploadRecipesAsync("recipes", [recipe]);
+  await recipeService.UploadRecipesAsync(recipes);
   return Results.Created("/recipes", recipe);
 })
   .WithName("Create Recipe");
@@ -145,7 +124,9 @@ app.MapDefaultEndpoints();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+static string? GetApiKeyFromConnectionString(string connectionString)
 {
-  public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+  var parts = connectionString.Split(',');
+  var keyPart = parts.FirstOrDefault(p => p.StartsWith("password=", StringComparison.OrdinalIgnoreCase));
+  return keyPart?.Split('=')[1];
 }

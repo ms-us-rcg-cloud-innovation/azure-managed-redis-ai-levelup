@@ -1,98 +1,69 @@
 using ManagedRedisLevelUp.Shared;
-using Microsoft.Extensions.VectorData;
-using Microsoft.SemanticKernel.Embeddings;
+using Redis.OM;
+using Redis.OM.Contracts;
+using Redis.OM.Searching;
 using StackExchange.Redis;
-
-#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 namespace ManagedRedisLevelUp.ApiService.Services;
 
-internal class RecipeService(
-  IVectorStore vectorStore,
-  ITextEmbeddingGenerationService textEmbeddingGenerationService,
-  IConnectionMultiplexer redisConnection)
+public class RecipeService(
+  IConnectionMultiplexer redisConnection,
+  RedisConnectionProvider redisOmConnectionProvider,
+  ISemanticCache cache)
 {
-  public async Task<Recipe> GetRecipeAsync(string collectionName, string keyId)
-  {
-    var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
+  private IRedisCollection<Recipe> _collection;
 
-    var options = new GetRecordOptions() { IncludeVectors = true };
-    var recipe = await collection.GetAsync(keyId, options);
-    return recipe;
+  public async Task InitializeAsync()
+  {
+    // Create the index in Redis if it doesn't exist.
+    // Uses annotations on Recipe class to define the index.
+    //if (!redisOmConnectionProvider.Connection.IsIndexCurrent(typeof(Recipe)))
+    //{
+    //  await redisOmConnectionProvider.Connection.DropIndexAsync(typeof(Recipe));
+    //  await redisOmConnectionProvider.Connection.CreateIndexAsync(typeof(Recipe));
+    //}
+    _collection = redisOmConnectionProvider.RedisCollection<Recipe>();
   }
 
-  public async IAsyncEnumerable<Recipe> GetRecipesAsync(string collectionName, int numOfRecords = 10)
+  public async Task<Recipe?> GetRecipeAsync(string keyId)
   {
-    var endpoints = redisConnection.GetEndPoints();
-    var keys = redisConnection.GetServer(endpoints.First()).KeysAsync(pageSize: numOfRecords);
-
-    var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
-
-    int count = 0;
-    await foreach (var key in keys)
-    {
-      if (count >= numOfRecords)
-      {
-        break;
-      }
-      var keyString = key.ToString();
-      var keyGuid = keyString.Substring(keyString.IndexOf(':') + 1);
-      var recipe = await collection.GetAsync(keyGuid);
-      if (recipe != null)
-      {
-        yield return recipe;
-      }
-    }
+    return await _collection.FindByIdAsync(keyId);
   }
 
-  public async IAsyncEnumerable<Recipe> SearchRecipesAsync(string collectionName, string searchString)
+  public async Task<IEnumerable<Recipe>> GetRecipesAsync(int numOfRecords = 10)
   {
-    var searchVector = await textEmbeddingGenerationService.GenerateEmbeddingAsync(searchString);
-    var vectorSearchOptions = new VectorSearchOptions
-    {
-      Top = 3,
-      IncludeTotalCount = true,
-      IncludeVectors = false,
-      VectorPropertyName = nameof(Recipe.RecipeEmbedding)
-    };
-
-    var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
-    var searchResult = await collection.VectorizedSearchAsync(searchVector, vectorSearchOptions, new CancellationToken());
-
-    await foreach (var result in searchResult.Results)
-    {
-      Console.WriteLine($"Search score: {result.Score}");
-      Console.WriteLine(result.Record.Name);
-      Console.WriteLine($"Key: {result.Record.Key}");
-      Console.WriteLine("=========");
-
-      yield return result.Record;
-    }
-  }
-
-  public async Task UploadRecipesAsync(string collectionName, List<Recipe> recipes)
-  {
-    var collection = vectorStore.GetCollection<string, Recipe>(collectionName);
-
-    await collection.CreateCollectionIfNotExistsAsync();
-
-    foreach (var recipe in recipes)
-    {
-      // Upload the recipe.
-      Console.WriteLine($"Upserting recipe: {recipe.Key}");
-      await collection.UpsertAsync(recipe);
-    }
-  }
-
-  public async Task<IEnumerable<Recipe>> GenerateEmbeddingsAsync(IEnumerable<Recipe> recipes)
-  {
-    foreach (var recipe in recipes)
-    {
-      // Generate the recipe embedding.
-      Console.WriteLine($"Generating embedding for recipe: {recipe.Key}");
-      recipe.RecipeEmbedding = await textEmbeddingGenerationService.GenerateEmbeddingAsync(recipe.GetEmbeddingString());
-    }
+    var recipes = await _collection.Take(10).ToListAsync();
     return recipes;
+  }
+
+  public async Task<IEnumerable<Recipe>> SearchRecipesAsync(string searchString)
+  {
+    var results = await cache.GetSimilarAsync(searchString);
+    if (results.Length > 0)
+    {
+      Console.WriteLine("found similar result in cache");
+      List<Recipe> output = [];
+      foreach (var result in results)
+      {
+        var recipe = await GetRecipeAsync(result.Key);
+        if (recipe is not null)
+          output.Add(recipe);
+      }
+      return output;
+    }
+
+    var searchResults = _collection.Where(r => r.SearchVector.VectorRange(searchString, 0.25)).Take(3);
+
+    return searchResults;
+  }
+
+  public async Task UploadRecipesAsync(List<Recipe> recipes)
+  {
+    foreach (var recipe in recipes)
+    {
+      recipe.SetVectors();
+    }
+    await _collection.InsertAsync(recipes);
   }
 
   public int GetRecipeCount()
