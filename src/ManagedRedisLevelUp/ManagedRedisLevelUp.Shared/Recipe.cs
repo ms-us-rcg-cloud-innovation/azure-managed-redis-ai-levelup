@@ -4,7 +4,7 @@ using Redis.OM.Vectorizers;
 
 namespace ManagedRedisLevelUp.Shared;
 
-[Document(StorageType = StorageType.Json, Prefixes = ["Recipes"])]
+[Document(StorageType = StorageType.Json, Prefixes = ["Recipes"], IndexName = "recipes-index")]
 public class Recipe
 {
   [RedisIdField]

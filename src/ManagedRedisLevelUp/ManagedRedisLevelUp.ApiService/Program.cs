@@ -9,7 +9,7 @@ using StackExchange.Redis;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Key Vault secrets from Aspire host to the configuration
-builder.Configuration.AddAzureKeyVaultSecrets("secrets");
+//builder.Configuration.AddAzureKeyVaultSecrets("secrets");
 
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
@@ -25,6 +25,11 @@ builder.AddRedisOutputCache(connectionName: "cache");
 
 // Add OpenAIClient from the Aspire client integrations.
 builder.AddAzureOpenAIClient("openAi");
+
+Environment.SetEnvironmentVariable(
+  "REDIS_OM_AZURE_OAI_TOKEN", 
+  builder.Configuration["REDIS_OM_AZURE_OAI_TOKEN"]
+);
 
 //// Add SearchIndexClient from the Aspire client integrations.
 //builder.AddAzureSearchClient("search");
@@ -43,8 +48,8 @@ builder.Services.AddSingleton<ISemanticCache>(sp =>
 
   var _provider = sp.GetRequiredService<RedisConnectionProvider>();
   var semanticCache = _provider.AzureOpenAISemanticCache(
-    apiKey: config["KEY"], 
-    resourceName: config["ENDPOINT"], 
+    apiKey: config["KEY"],
+    resourceName: config["ENDPOINT"],
     deploymentId: config["DEPLOYMENT_NAME"], 
     dim: 1536);
   return semanticCache;
@@ -81,16 +86,13 @@ app.UseOutputCache();
 
 app.MapGet("/recipes", async (RecipeService recipeService) =>
 {
-  //RecipeService svc = (RecipeService)kernel.Services.GetService(typeof(RecipeService));
-  //await recipeService.InitializeAsync();
-  var recipeResponse = recipeService.GetRecipesAsync();
+  var recipeResponse = await recipeService.GetRecipesAsync();
   return Results.Ok(recipeResponse);
 })
   .WithName("Get Recipes");
 
 app.MapGet("/recipes/{key}", async ([FromServices] RecipeService recipeService, string key) =>
 {
-  //await recipeService.InitializeAsync();
   var recipeResponse = await recipeService.GetRecipeAsync(key);
   return Results.Ok(recipeResponse);
 })
@@ -98,8 +100,8 @@ app.MapGet("/recipes/{key}", async ([FromServices] RecipeService recipeService, 
 
 app.MapGet("/recipes/search/{query}", async ([FromServices] RecipeService recipeService, string query) =>
 {
-  //await recipeService.InitializeAsync();
-  var recipeResponse = recipeService.SearchRecipesAsync(query);
+  var recipeResponse = await recipeService.SearchRecipesAsync(query);
+  var response = recipeResponse.ToList();
   return Results.Ok(recipeResponse);
 })
   .CacheOutput()
@@ -107,7 +109,6 @@ app.MapGet("/recipes/search/{query}", async ([FromServices] RecipeService recipe
 
 app.MapGet("/recipes/count", async ([FromServices] RecipeService recipeService) =>
 {
-  //await recipeService.InitializeAsync();
   return Results.Ok(recipeService.GetRecipeCount());
 })
   .WithName("Get Recipe Count");

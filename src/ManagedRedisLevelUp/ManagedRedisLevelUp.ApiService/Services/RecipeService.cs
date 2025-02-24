@@ -15,13 +15,6 @@ public class RecipeService(
 
   public async Task InitializeAsync()
   {
-    // Create the index in Redis if it doesn't exist.
-    // Uses annotations on Recipe class to define the index.
-    //if (!redisOmConnectionProvider.Connection.IsIndexCurrent(typeof(Recipe)))
-    //{
-    //  await redisOmConnectionProvider.Connection.DropIndexAsync(typeof(Recipe));
-    //  await redisOmConnectionProvider.Connection.CreateIndexAsync(typeof(Recipe));
-    //}
     _collection = redisOmConnectionProvider.RedisCollection<Recipe>();
   }
 
@@ -30,9 +23,9 @@ public class RecipeService(
     return await _collection.FindByIdAsync(keyId);
   }
 
-  public async Task<IEnumerable<Recipe>> GetRecipesAsync(int numOfRecords = 10)
+  public async Task<IList<Recipe>> GetRecipesAsync(int numOfRecords = 10)
   {
-    var recipes = await _collection.Take(10).ToListAsync();
+    var recipes = await _collection.Take(numOfRecords).ToListAsync();
     return recipes;
   }
 

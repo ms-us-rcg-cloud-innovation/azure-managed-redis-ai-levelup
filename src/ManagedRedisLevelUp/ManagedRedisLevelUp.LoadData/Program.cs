@@ -44,7 +44,12 @@ class Program
       recipes[i].SetVectors();
     }
 
-    await recipeService.InitializeAsync();
+    if (!await connectionProvider.Connection.IsIndexCurrentAsync(typeof(Recipe)))
+    {
+      connectionProvider.Connection.DropIndex(typeof(Recipe));
+      connectionProvider.Connection.CreateIndex(typeof(Recipe));
+    }
+
     await recipeService.UploadRecipesAsync(recipes);
 
     Console.WriteLine($"Total records upserted: {recipes.Count}.");
