@@ -4,6 +4,10 @@
 <div class="recipe-card" style="min-width: 250px;">
   <div class="card-header" style="position: relative;">
     <h3>@Recipe.Name</h3>
+    @if (Recipe.IsCacheHit)
+    {
+      <span class="ml-2 badge bg-success">Cache</span>
+    }
     <p>@Recipe.Description</p>
     <button class="btn btn-secondary p-0" style="position: absolute; top: 0px; right: 0px; height: 32px; width: 32px;" @onclick="Edit">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
@@ -36,7 +40,7 @@
 
 @code {
   [Parameter]
-  public Recipe Recipe { get; set; }
+  public RecipeSearchResponse Recipe { get; set; }
 
   [Parameter]
   public EventCallback<string> EditRecipe { get; set; }

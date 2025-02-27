@@ -75,19 +75,29 @@
 
 <EditForm Model="SearchString" OnValidSubmit="SearchRecipes">
   <div class="my-4">
+
     <div>
       <label for="search">Search:</label>
       <input id="search" class="form-control" @bind="SearchString" />
     </div>
 
     <div class="d-flex mt-2">
-      <button type="submit" class="btn btn-primary mr-2" @onclick="SearchRecipes">Search Recipes</button>
+      <div class="my-2">
+        <label for="approach">Search Approach:</label>
+        <InputSelect id="approach" @bind-Value="@searchApproach" class="form-control dropdown">
+          <option value="VectorRange">Vector Range</option>
+          <option value="NearestNeighbors">Nearest Neighbors</option>
+        </InputSelect>
+      </div>
+      <div class="mx-2 mt-auto mb-2">
+        <button type="submit" class="btn btn-primary mr-2" @onclick="SearchRecipes">Search Recipes</button>
+      </div>
 
-      <div class="mx-2">
+      <div class="mx-2 mt-auto mb-2">
         <button type="button" class="btn btn-secondary" @onclick="GetRecipes">Get 10 Recipes</button>
       </div>
 
-      <div class="mx-2">
+      <div class="mx-2 mt-auto mb-2">
         <button type="button" class="btn btn-secondary" @onclick="() => Clear()">Clear Results</button>
       </div>
     </div>
@@ -113,8 +123,9 @@
   private string recipeResponse = string.Empty;
   private string RecipeKey = string.Empty;
   private string SearchString = string.Empty;
-  private List<Recipe> RecipeList = new();
+  private List<RecipeSearchResponse> RecipeList = new();
   private string ErrorMessage = string.Empty;
+  private string searchApproach = "VectorRange";
 
   private async Task HandleValidSubmit()
   {
@@ -154,10 +165,11 @@
 
   private async Task SearchRecipes()
   {
-    var response = await RecipeApiClient.SearchRecipesAsync(SearchString);
+    var response = await RecipeApiClient.SearchRecipesAsync(SearchString, searchApproach);
     recipeResponse = string.Join(Environment.NewLine, response.Select(r => $"Key: {r.Key}\n\nName: {r.Name}\n\nIngredients: {r.Ingredients}, Instruction: {r.Steps}"));
     RecipeList.Clear();
     RecipeList.AddRange(response);
+    StateHasChanged();
   }
 
   private void AddIngredient()
@@ -192,7 +204,7 @@
 
   private void SetEditRecipe(string recipeKey)
   {
-    recipe = RecipeList.First(r => r.Key == recipeKey);
+    recipe = RecipeList.First(r => r.Key == recipeKey).AsRecipe();
     StateHasChanged();
   }
 

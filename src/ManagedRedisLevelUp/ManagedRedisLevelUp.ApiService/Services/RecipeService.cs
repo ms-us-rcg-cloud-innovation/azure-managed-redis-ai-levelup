@@ -3,6 +3,7 @@ using Redis.OM;
 using Redis.OM.Contracts;
 using Redis.OM.Searching;
 using StackExchange.Redis;
+using System.Text.Json;
 
 namespace ManagedRedisLevelUp.ApiService.Services;
 
@@ -18,38 +19,92 @@ public class RecipeService(
     _collection = redisOmConnectionProvider.RedisCollection<Recipe>();
   }
 
-  public async Task<Recipe?> GetRecipeAsync(string keyId)
+  /// <summary>
+  /// Get a recipe by its key id.
+  /// </summary>
+  /// <param name="keyId">The unique identifier of the recipe.</param>
+  public async Task<RecipeSearchResponse?> GetRecipeAsync(string keyId)
   {
-    return await _collection.FindByIdAsync(keyId);
+    var recipe = await _collection.FindByIdAsync(keyId);
+    if (recipe is not null)
+    {
+      return new RecipeSearchResponse(recipe);
+    }
+    return null;
   }
 
-  public async Task<IList<Recipe>> GetRecipesAsync(int numOfRecords = 10)
+
+  /// <summary>
+  /// Get a list of recipes.
+  /// </summary>
+  /// <param name="numOfRecords">The number of records to return.</param>
+  public async Task<IEnumerable<RecipeSearchResponse>> GetRecipesAsync(int numOfRecords = 10)
   {
     var recipes = await _collection.Take(numOfRecords).ToListAsync();
-    return recipes;
+    var recipeList = recipes.Select(r => new RecipeSearchResponse(r));
+    return recipeList;
   }
 
-  public async Task<IEnumerable<Recipe>> SearchRecipesAsync(string searchString)
+  /// <summary>
+  /// Search for recipes.
+  /// </summary>
+  /// <param name="searchString">The natural language search string.</param>
+  /// <param name="approach">The approach to use for searching. Allowed values are "VectorRange" and "NearestNeighbors".</param>
+  public async Task<IEnumerable<RecipeSearchResponse>> SearchRecipesAsync(string searchString, string? approach = "VectorRange")
   {
     var results = await cache.GetSimilarAsync(searchString);
     if (results.Length > 0)
     {
       Console.WriteLine("found similar result in cache");
-      List<Recipe> output = [];
+      List<RecipeSearchResponse> output = [];
       foreach (var result in results)
       {
-        var recipe = await GetRecipeAsync(result.Key);
-        if (recipe is not null)
-          output.Add(recipe);
+        if (result.Response is not null)
+        {
+          var recipes = JsonSerializer.Deserialize<List<RecipeSearchResponse>>(result.Response);
+          recipes?.ForEach(r => r.IsCacheHit = true);
+          output.AddRange(recipes!);
+        }
       }
       return output;
     }
 
-    var searchResults = _collection.Where(r => r.SearchVector.VectorRange(searchString, 0.25)).Take(3);
+    Console.WriteLine("found no similar result in cache");
 
-    return searchResults;
+    return await GetSearchResultsAsync(searchString, approach);
   }
 
+  private async Task<IEnumerable<RecipeSearchResponse>> GetSearchResultsAsync(string searchString, string? approach)
+  {
+    IList<Recipe> searchResultList = [];
+
+    if (approach == "VectorRange")
+    {
+      var searchResults = _collection.Where(r => r.SearchVector.VectorRange(searchString, 0.25)).Take(3);
+      searchResultList = await searchResults.ToListAsync();
+    }
+    else // approach == "NearestNeighbors"
+    {
+      var searchResults = _collection.NearestNeighbors(r => r.SearchVector, 3, searchString);
+      searchResultList = await searchResults.ToListAsync();
+    }
+
+    await UpdateSearchCacheAsync(approach, searchString, searchResultList);
+
+    var recipeList = searchResultList.Select(r => new RecipeSearchResponse(r));
+    return recipeList;
+  }
+
+  private async Task UpdateSearchCacheAsync(string approach, string searchString, IEnumerable<Recipe> searchResults)
+  {
+    var response = JsonSerializer.Serialize(searchResults);
+    await cache.StoreAsync($"{searchString}|{approach}", response);    
+  }
+
+  /// <summary>
+  /// Upload a list of recipes to the database.
+  /// </summary>
+  /// <param name="recipes">A <see cref="List{T}"/> of <see cref="Recipe"/>s to upload</param>
   public async Task UploadRecipesAsync(List<Recipe> recipes)
   {
     foreach (var recipe in recipes)
@@ -59,6 +114,9 @@ public class RecipeService(
     await _collection.InsertAsync(recipes);
   }
 
+  /// <summary>
+  /// Get the count of recipes in the database.
+  /// </summary>
   public int GetRecipeCount()
   {
     var endpoints = redisConnection.GetEndPoints();

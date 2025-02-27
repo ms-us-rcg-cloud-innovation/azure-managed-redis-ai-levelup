@@ -51,7 +51,8 @@ builder.Services.AddSingleton<ISemanticCache>(sp =>
     apiKey: config["KEY"],
     resourceName: config["ENDPOINT"],
     deploymentId: config["DEPLOYMENT_NAME"], 
-    dim: 1536);
+    dim: 1536,
+    ttl: 10000); // 10 second TTL
   return semanticCache;
 });
 
@@ -98,13 +99,15 @@ app.MapGet("/recipes/{key}", async ([FromServices] RecipeService recipeService, 
 })
   .WithName("Get Recipe");
 
-app.MapGet("/recipes/search/{query}", async ([FromServices] RecipeService recipeService, string query) =>
+app.MapGet("/recipes/search/{query}", async (
+  [FromServices] RecipeService recipeService, 
+  [FromQuery] string? approach, 
+  string query) =>
 {
-  var recipeResponse = await recipeService.SearchRecipesAsync(query);
+  var recipeResponse = await recipeService.SearchRecipesAsync(query, approach);
   var response = recipeResponse.ToList();
   return Results.Ok(recipeResponse);
 })
-  .CacheOutput()
   .WithName("Search Recipes");
 
 app.MapGet("/recipes/count", async ([FromServices] RecipeService recipeService) =>
@@ -117,7 +120,7 @@ app.MapPost("/recipes", async ([FromServices] RecipeService recipeService, Recip
 {
   List<Recipe> recipes = [recipe];
   await recipeService.UploadRecipesAsync(recipes);
-  return Results.Created("/recipes", recipe);
+  return Results.Created($"/recipes/{recipe.Key}", recipe);
 })
   .WithName("Create Recipe");
 

@@ -5,11 +5,13 @@ namespace ManagedRedisLevelUp.Web;
 
 public class RecipeApiClient(HttpClient httpClient)
 {
-  public async Task<Recipe[]> GetRecipesAsync(int maxItems = 10, CancellationToken cancellationToken = default)
+  public async Task<RecipeSearchResponse[]> GetRecipesAsync(
+    int maxItems = 10,
+    CancellationToken cancellationToken = default)
   {
-    List<Recipe>? recipes = null;
+    List<RecipeSearchResponse>? recipes = null;
 
-    await foreach (var recipe in httpClient.GetFromJsonAsAsyncEnumerable<Recipe>("/recipes", cancellationToken))
+    await foreach (var recipe in httpClient.GetFromJsonAsAsyncEnumerable<RecipeSearchResponse>("/recipes", cancellationToken))
     {
       if (recipes?.Count >= maxItems)
       {
@@ -25,11 +27,13 @@ public class RecipeApiClient(HttpClient httpClient)
     return recipes?.ToArray() ?? [];
   }
 
-  public async Task<Recipe?> GetRecipeAsync(string key, CancellationToken cancellationToken = default)
+  public async Task<RecipeSearchResponse?> GetRecipeAsync(
+    string key,
+    CancellationToken cancellationToken = default)
   {
     try
     {
-      var recipe = await httpClient.GetFromJsonAsync<Recipe>($"/recipes/{key}", cancellationToken);
+      var recipe = await httpClient.GetFromJsonAsync<RecipeSearchResponse>($"/recipes/{key}", cancellationToken);
       return recipe;
     }
     catch (JsonException _)
@@ -44,7 +48,9 @@ public class RecipeApiClient(HttpClient httpClient)
     }
   }
 
-  public async Task<string> CreateRecipeAsync(Recipe recipe, CancellationToken cancellationToken = default)
+  public async Task<string> CreateRecipeAsync(
+    Recipe recipe,                                              
+    CancellationToken cancellationToken = default)
   {
     var response = await httpClient.PostAsJsonAsync("/recipes", recipe, cancellationToken);
     response.EnsureSuccessStatusCode();
@@ -52,9 +58,12 @@ public class RecipeApiClient(HttpClient httpClient)
     return await response.Content.ReadAsStringAsync(cancellationToken);
   }
 
-  public async Task<IEnumerable<Recipe>> SearchRecipesAsync(string query, CancellationToken cancellationToken = default)
+  public async Task<IEnumerable<RecipeSearchResponse>> SearchRecipesAsync(
+    string query,
+    string approach,
+    CancellationToken cancellationToken = default)
   {
-    var response = await httpClient.GetFromJsonAsync<List<Recipe>>($"/recipes/search/{query}", cancellationToken) ?? [];
+    var response = await httpClient.GetFromJsonAsync<List<RecipeSearchResponse>>($"/recipes/search/{query}?approach={approach}", cancellationToken) ?? [];
     if (response.Count == 0)
     {
       Console.WriteLine("No recipes found");
