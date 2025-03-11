@@ -1,225 +1,68 @@
-﻿@page "/recipes"
+﻿@page "/"
+@page "/recipes"
 @rendermode InteractiveServer
 @using ManagedRedisLevelUp.Shared
+@using ManagedRedisLevelUp.Web.Models
 @using Microsoft.AspNetCore.Components.Forms
+@using ManagedRedisLevelUp.Web.Components.Pages.RecipesComponents
 @inject RecipeApiClient RecipeApiClient
 
-<EditForm Model="@recipe" OnValidSubmit="@HandleValidSubmit">
-  <DataAnnotationsValidator />
-  <ValidationSummary />
+<div class="container">
+  <h1 class="mb-4">Recipes</h1>
 
-  <div class="my-2">
-    <label for="name">Name:</label>
-    <InputText id="name" @bind-Value="@recipe.Name" class="form-control" />
-  </div>
-  <div class="my-2">
-    <label for="totalTimeInMinutes">Total Time (in minutes):</label>
-    <InputNumber id="totalTimeInMinutes" @bind-Value="@recipe.TotalTimeInMinutes" class="form-control" />
-  </div>
-  <div class="my-2">
-    <label for="description">Description:</label>
-    <InputTextArea id="description" @bind-Value="@recipe.Description" class="form-control" />
-  </div>
-  <div class="my-2">
-    <label for="ingredients">Ingredients:</label>
-    @for (int i = 0; i < recipe.Ingredients.Count; i++)
-    {
-      var ingredientIndex = i;
-      var ingredient = recipe.Ingredients[ingredientIndex];
-
-      <div class="input-group mb-2">
-        <input type="text" value="@ingredient" @oninput="(e) => UpdateIngredient(e, ingredientIndex)" class="form-control" />
-        <button type="button" class="btn btn-danger" @onclick="() => RemoveIngredient(ingredientIndex)">Remove</button>
-      </div>
-    }
-    <button type="button" class="btn btn-sm btn-secondary" @onclick="AddIngredient">Add Ingredient</button>
-  </div>
-  <div class="my-2">
-    <label for="steps">Steps:</label>
-    @for (int i = 0; i < recipe.Steps.Count; i++)
-    {
-      var stepIndex = i;
-      var step = recipe.Steps[stepIndex];
-
-      <div class="input-group mb-2">
-        <input type="text" value="@step" @oninput="(e) => UpdateStep(e, stepIndex)" class="form-control" />
-        <button type="button" class="btn btn-danger" @onclick="() => RemoveStep(stepIndex)">Remove</button>
-      </div>
-    }
-    <button type="button" class="btn btn-sm btn-secondary" @onclick="AddStep">Add Step</button>
-  </div>
-
-  <div class="mt-2">
-    @if (RecipeList.Any(r => r.Key == recipe.Key))
-    {
-      <button type="submit" class="btn btn-primary">
-        Update Recipe
-      </button>
-    }
-    else
-    {
-      <button type="submit" class="btn btn-primary">
-        Create Recipe
-      </button>
-    }
-  </div>
-</EditForm>
-
-<EditForm Model="RecipeKey" OnValidSubmit="GetRecipe">
-  <div class="my-4">
-    <label for="key">Get Recipe By Key:</label>
-    <input id="key" @bind="@RecipeKey" class="form-control" />
-    <button type="submit" class="btn btn-primary mt-2" @onclick="GetRecipe">Get Recipe</button>
-  </div>
-</EditForm>
-
-<EditForm Model="SearchString" OnValidSubmit="SearchRecipes">
-  <div class="my-4">
-
-    <div>
-      <label for="search">Search:</label>
-      <input id="search" class="form-control" @bind="SearchString" />
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <h2>Create or Edit Recipe</h2>
+      <RecipeForm Recipe="@_recipeState.CurrentRecipe"
+                  IsEditing="@_recipeState.IsEditing"
+                  OnRecipeSaved="HandleRecipeSaved" />
     </div>
 
-    <div class="d-flex mt-2">
-      <div class="my-2">
-        <label for="approach">Search Approach:</label>
-        <InputSelect id="approach" @bind-Value="@searchApproach" class="form-control dropdown">
-          <option value="VectorRange">Vector Range</option>
-          <option value="NearestNeighbors">Nearest Neighbors</option>
-        </InputSelect>
-      </div>
-      <div class="mx-2 mt-auto mb-2">
-        <button type="submit" class="btn btn-primary mr-2" @onclick="SearchRecipes">Search Recipes</button>
-      </div>
-
-      <div class="mx-2 mt-auto mb-2">
-        <button type="button" class="btn btn-secondary" @onclick="GetRecipes">Get 10 Recipes</button>
-      </div>
-
-      <div class="mx-2 mt-auto mb-2">
-        <button type="button" class="btn btn-secondary" @onclick="() => Clear()">Clear Results</button>
-      </div>
+    <div class="col-lg-6">
+      <h2>Find Recipes</h2>
+      <RecipeSearch RecipeKey="@_recipeState.RecipeKey"
+                    RecipeKeyChanged="(value) => _recipeState.RecipeKey = value"
+                    SearchString="@_recipeState.SearchString"
+                    SearchStringChanged="(value) => _recipeState.SearchString = value"
+                    SearchApproach="@_recipeState.SearchApproach"
+                    SearchApproachChanged="(value) => _recipeState.SearchApproach = value"
+                    OnSearchResults="HandleSearchResults"
+                    OnClearRequested="ClearResults" />
     </div>
   </div>
-</EditForm>
 
-@if (RecipeList.Count > 0)
-{
-  <h3 class="mt-5">Results</h3>
-  <div class="d-flex flex-wrap">
-    @foreach (var recipe in RecipeList)
-    {
-      <RecipeCard Recipe="@recipe" EditRecipe="SetEditRecipe" />
-    }
-  </div>
-}
-
-<pre>@ErrorMessage</pre>
-@* <pre>@recipeResponse</pre> *@
+  <RecipeResults Recipes="@_recipeState.RecipeList"
+                 ErrorMessage="@_recipeState.ErrorMessage"
+                 OnEditRequested="HandleEditRequested" />
+</div>
 
 @code {
-  private Recipe recipe = new();
-  private string recipeResponse = string.Empty;
-  private string RecipeKey = string.Empty;
-  private string SearchString = string.Empty;
-  private List<RecipeSearchResponse> RecipeList = new();
-  private string ErrorMessage = string.Empty;
-  private string searchApproach = "VectorRange";
+  private RecipeState _recipeState = new();
 
-  private async Task HandleValidSubmit()
+  private void HandleRecipeSaved(Recipe recipe)
   {
-    var response = await RecipeApiClient.CreateRecipeAsync(recipe);
-    recipeResponse = response;
-    recipe = new();
-  }
-
-  private async Task Clear()
-  {
-    RecipeList.Clear();
-    recipe = new();
-    SearchString = string.Empty;
-  }
-
-  private async Task GetRecipes()
-  {
-    var response = await RecipeApiClient.GetRecipesAsync();
-    recipeResponse = string.Join(Environment.NewLine, response.Select(r => $"Key: {r.Key}\n\nName: {r.Name}\n\nIngredients: {r.Ingredients}, Instructions: {r.Steps}"));
-    RecipeList.Clear();
-    RecipeList.AddRange(response);
-  }
-
-  private async Task GetRecipe()
-  {
-    var response = await RecipeApiClient.GetRecipeAsync(RecipeKey);
-    if (response is null)
-    {
-      ErrorMessage = $"Recipe not found: {RecipeKey}";
-      return;
-    }
-    recipeResponse = $"Key: {response.Key}\n\nName: {response.Name}\n\nIngredients: {response.Ingredients}\n\nInstructions: {response.Steps}";
-
-    RecipeList.Clear();
-    RecipeList.Add(response);
-  }
-
-  private async Task SearchRecipes()
-  {
-    var response = await RecipeApiClient.SearchRecipesAsync(SearchString, searchApproach);
-    recipeResponse = string.Join(Environment.NewLine, response.Select(r => $"Key: {r.Key}\n\nName: {r.Name}\n\nIngredients: {r.Ingredients}, Instruction: {r.Steps}"));
-    RecipeList.Clear();
-    RecipeList.AddRange(response);
+    _recipeState.CurrentRecipe = new Recipe();
     StateHasChanged();
   }
 
-  private void AddIngredient()
+  private void HandleSearchResults(List<RecipeSearchResponse> results)
   {
-    recipe.Ingredients.Add(string.Empty);
-  }
-
-  private void RemoveIngredient(int index)
-  {
-    recipe.Ingredients.RemoveAt(index);
-  }
-
-  private void UpdateIngredient(ChangeEventArgs e, int index)
-  {
-    recipe.Ingredients[index] = e.Value.ToString();
-  }
-
-  private void AddStep()
-  {
-    recipe.Steps.Add(string.Empty);
-  }
-
-  private void RemoveStep(int index)
-  {
-    recipe.Steps.RemoveAt(index);
-  }
-
-  private void UpdateStep(ChangeEventArgs e, int index)
-  {
-    recipe.Steps[index] = e.Value.ToString();
-  }
-
-  private void SetEditRecipe(string recipeKey)
-  {
-    recipe = RecipeList.First(r => r.Key == recipeKey).AsRecipe();
+    _recipeState.RecipeList.Clear();
+    _recipeState.RecipeList.AddRange(results);
+    _recipeState.ErrorMessage = string.Empty;
     StateHasChanged();
   }
 
-  public class NewRecipe
+  private void HandleEditRequested(Recipe recipe)
   {
-    public string Name { get; set; } = string.Empty;
-    public string Ingredients { get; set; } = string.Empty;
-    public string Instructions { get; set; } = string.Empty;
+    _recipeState.CurrentRecipe = recipe;
+    StateHasChanged();
+  }
 
-    public Recipe ToRecipe() => new()
-      {
-        Key = Guid.NewGuid().ToString(),
-        Name = Name,
-        Ingredients = [Ingredients],
-        Steps = [Instructions]
-      };
+  private void ClearResults()
+  {
+    _recipeState.Reset(preserveSearchTerms: true);
+    _recipeState.RecipeList.Clear();
+    StateHasChanged();
   }
 }
