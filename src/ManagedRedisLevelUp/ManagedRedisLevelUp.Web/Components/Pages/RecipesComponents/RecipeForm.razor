@@ -3,47 +3,47 @@
 @inject RecipeApiClient RecipeApiClient
 
 <EditForm Model="@Recipe" OnValidSubmit="@HandleSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+  <DataAnnotationsValidator />
+  <ValidationSummary />
 
-    <div class="my-2">
-        <label for="name">Name:</label>
-        <InputText id="name" @bind-Value="@Recipe.Name" class="form-control" />
-    </div>
-    
-    <div class="my-2">
-        <label for="totalTimeInMinutes">Total Time (in minutes):</label>
-        <InputNumber id="totalTimeInMinutes" @bind-Value="@Recipe.TotalTimeInMinutes" class="form-control" />
-    </div>
-    
-    <div class="my-2">
-        <label for="description">Description:</label>
-        <InputTextArea id="description" @bind-Value="@Recipe.Description" class="form-control" />
-    </div>
-    
-    <ListEditor T="string" Items="Recipe.Ingredients" Id="ingredients" Label="Ingredients" />
-    <ListEditor T="string" Items="Recipe.Steps" Id="steps" Label="Steps" />
+  <div class="my-2">
+    <label for="name">Name:</label>
+    <InputText id="name" @bind-Value="@Recipe.Name" class="form-control" />
+  </div>
 
-    <div class="mt-2">
-        <button type="submit" class="btn btn-primary">
-            @(IsEditing ? "Update Recipe" : "Create Recipe")
-        </button>
-    </div>
+  <div class="my-2">
+    <label for="totalTimeInMinutes">Total Time (in minutes):</label>
+    <InputNumber id="totalTimeInMinutes" @bind-Value="@Recipe.TotalTimeInMinutes" class="form-control" />
+  </div>
+
+  <div class="my-2">
+    <label for="description">Description:</label>
+    <InputTextArea id="description" @bind-Value="@Recipe.Description" class="form-control" />
+  </div>
+
+  <ListEditor T="string" Items="Recipe.Ingredients" Id="ingredients" Label="Ingredients" />
+  <ListEditor T="string" Items="Recipe.Steps" Id="steps" Label="Steps" />
+
+  <div class="mt-2">
+    <button type="submit" class="btn btn-primary">
+      @(IsEditing ? "Update Recipe" : "Create Recipe")
+    </button>
+  </div>
 </EditForm>
 
 @code {
-    [Parameter]
-    public Recipe Recipe { get; set; } = new();
+  [Parameter]
+  public Recipe Recipe { get; set; } = new();
 
-    [Parameter]
-    public bool IsEditing { get; set; }
+  [Parameter]
+  public bool IsEditing { get; set; }
 
-    [Parameter]
-    public EventCallback<Recipe> OnRecipeSaved { get; set; }
+  [Parameter]
+  public EventCallback<Recipe> OnRecipeSaved { get; set; }
 
-    private async Task HandleSubmit()
-    {
-        await RecipeApiClient.CreateRecipeAsync(Recipe);
-        await OnRecipeSaved.InvokeAsync(Recipe);
-    }
+  private async Task HandleSubmit()
+  {
+    await RecipeApiClient.CreateRecipeAsync(Recipe);
+    await OnRecipeSaved.InvokeAsync(Recipe);
+  }
 }

@@ -17,7 +17,7 @@ public static class AzureOpenAIExtensions
   {
     builder.AddAzureProvisioning();
 
-    var configureInfrastructure = (AzureResourceInfrastructure infrastructure) =>
+    static void configureInfrastructure(AzureResourceInfrastructure infrastructure)
     {
       var cogServicesAccount = new CognitiveServicesAccount(infrastructure.AspireResource.GetBicepIdentifier())
       {
@@ -86,7 +86,7 @@ public static class AzureOpenAIExtensions
 
         dependency = cdkDeployment;
       }
-    };
+    }
 
     var resource = new AzureOpenAIResource(name, configureInfrastructure);
     return builder.AddResource(resource)

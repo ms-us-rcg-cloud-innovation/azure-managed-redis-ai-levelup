@@ -49,7 +49,7 @@ public class RecipeApiClient(HttpClient httpClient)
   }
 
   public async Task<string> CreateRecipeAsync(
-    Recipe recipe,                                              
+    Recipe recipe,
     CancellationToken cancellationToken = default)
   {
     var response = await httpClient.PostAsJsonAsync("/recipes", recipe, cancellationToken);

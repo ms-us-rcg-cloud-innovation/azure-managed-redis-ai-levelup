@@ -3,114 +3,132 @@
 @inject RecipeApiClient RecipeApiClient
 
 <div class="d-flex flex-column g-3">
-    <div class="">
-        <EditForm Model="RecipeKey" OnValidSubmit="HandleGetRecipe">
-            <div class="mb-4">
-                <label for="key">Get Recipe By Key:</label>
-                <input id="key" @bind="@RecipeKey" class="form-control" />
-                <button type="submit" class="btn btn-primary mt-2">
-                  Get Recipe
-                </button>
-            </div>
-        </EditForm>
-    </div>
+  <div class="">
+    <EditForm Model="RecipeKey" OnValidSubmit="HandleGetRecipe">
+      <div class="mb-4">
+        <label for="key">Get Recipe By Key:</label>
+        <input id="key" @bind="@RecipeKey" class="form-control" />
+        <button type="submit" class="btn btn-primary mt-2">
+          Get Recipe
+        </button>
+      </div>
+    </EditForm>
+  </div>
 
-    <div class="">
-        <EditForm Model="SearchString" OnValidSubmit="HandleSearch">
-            <div class="mb-4">
-                <div>
-                    <label for="search">Search:</label>
-                    <input id="search" class="form-control" @bind="SearchString" />
-                </div>
+  <div class="">
+    <EditForm Model="SearchString" OnValidSubmit="HandleSearch">
+      <div class="mb-4">
+        <div>
+          <label for="search">Search:</label>
+          <input id="search"
+                 class="form-control"
+                 @bind="_localSearchString"
+                 @bind:event="oninput"
+                 placeholder="Ingredient, recipe type, etc." />
+        </div>
 
-                <div class="d-flex mt-2">
-                    <div class="my-2">
-                        <label for="approach">Search Approach:</label>
-                        <InputSelect id="approach" @bind-Value="@SearchApproach" class="form-control dropdown">
-                            <option value="VectorRange">Vector Range</option>
-                            <option value="NearestNeighbors">Nearest Neighbors</option>
-                        </InputSelect>
-                    </div>
-                    
-                    <div class="mx-2 mt-auto mb-2">
-                        <button type="submit" class="btn btn-primary mr-2" disabled="@string.IsNullOrWhiteSpace(SearchString)">
-                          Search Recipes
-                        </button>
-                    </div>
+        <div class="d-flex mt-2">
+          <div class="my-2">
+            <label for="approach">Search Approach:</label>
+            <InputSelect id="approach" @bind-Value="@SearchApproach" class="form-control dropdown">
+              <option value="VectorRange">Vector Range</option>
+              <option value="NearestNeighbors">Nearest Neighbors</option>
+            </InputSelect>
+          </div>
 
-                    <div class="mx-2 mt-auto mb-2">
-                        <button type="button" class="btn btn-secondary" @onclick="HandleGetAllRecipes">
-                          Get 10 Recipes
-                        </button>
-                    </div>
+          <div class="mx-2 mt-auto mb-2">
+            <button type="submit" class="btn btn-primary mr-2" disabled="@string.IsNullOrWhiteSpace(_localSearchString)">
+              Search Recipes
+            </button>
+          </div>
 
-                    <div class="mx-2 mt-auto mb-2">
-                        <button type="button" class="btn btn-secondary" @onclick="HandleClear">
-                          Clear Results
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </EditForm>
-    </div>
+          <div class="mx-2 mt-auto mb-2">
+            <button type="button" class="btn btn-secondary" @onclick="HandleGetAllRecipes">
+              Get 10 Recipes
+            </button>
+          </div>
+
+          <div class="mx-2 mt-auto mb-2">
+            <button type="button" class="btn btn-secondary" @onclick="HandleClear">
+              Clear Results
+            </button>
+          </div>
+        </div>
+      </div>
+    </EditForm>
+  </div>
 </div>
 
 @code {
-    [Parameter]
-    public string RecipeKey { get; set; } = string.Empty;
+  [Parameter]
+  public string RecipeKey { get; set; } = string.Empty;
 
-    [Parameter]
-    public EventCallback<string> RecipeKeyChanged { get; set; }
+  [Parameter]
+  public EventCallback<string> RecipeKeyChanged { get; set; }
 
-    [Parameter]
-    public string SearchString { get; set; } = string.Empty;
+  [Parameter]
+  public string SearchString { get; set; } = string.Empty;
 
-    [Parameter]
-    public EventCallback<string> SearchStringChanged { get; set; }
+  [Parameter]
+  public EventCallback<string> SearchStringChanged { get; set; }
 
-    [Parameter]
-    public string SearchApproach { get; set; } = "VectorRange";
+  [Parameter]
+  public string SearchApproach { get; set; } = "VectorRange";
 
-    [Parameter]
-    public EventCallback<string> SearchApproachChanged { get; set; }
+  [Parameter]
+  public EventCallback<string> SearchApproachChanged { get; set; }
 
-    [Parameter]
-    public EventCallback<List<RecipeSearchResponse>> OnSearchResults { get; set; }
+  [Parameter]
+  public EventCallback<List<RecipeSearchResponse>> OnSearchResults { get; set; }
 
-    [Parameter]
-    public EventCallback OnClearRequested { get; set; }
+  [Parameter]
+  public EventCallback OnClearRequested { get; set; }
 
-    private async Task HandleGetRecipe()
+  // Track search text locally without triggering parent rerenders
+  private string _localSearchString = string.Empty;
+
+  protected override void OnParametersSet()
+  {
+    // Keep local value in sync when parameter changes
+    _localSearchString = SearchString;
+    base.OnParametersSet();
+  }
+
+  private async Task HandleSearch()
+  {
+    // Update the parent SearchString before searching
+    SearchString = _localSearchString;
+
+    var results = await RecipeApiClient.SearchRecipesAsync(SearchString, SearchApproach);
+    await OnSearchResults.InvokeAsync(results.ToList());
+
+    // Notify parent of current values
+    await SearchStringChanged.InvokeAsync(SearchString);
+    await SearchApproachChanged.InvokeAsync(SearchApproach);
+  }
+
+  private async Task HandleGetRecipe()
+  {
+    var response = await RecipeApiClient.GetRecipeAsync(RecipeKey);
+    if (response is null)
     {
-        var response = await RecipeApiClient.GetRecipeAsync(RecipeKey);
-        if (response is null)
-        {
-            return;
-        }
-        
-        await OnSearchResults.InvokeAsync(new List<RecipeSearchResponse> { response });
+      return;
     }
 
-    private async Task HandleSearch()
-    {
-        // Don't reset SearchString or SearchApproach here
-        var results = await RecipeApiClient.SearchRecipesAsync(SearchString, SearchApproach);
-        await OnSearchResults.InvokeAsync(results.ToList());
-        // Make sure we notify about the current values to preserve them
-        await SearchStringChanged.InvokeAsync(SearchString);
-        await SearchApproachChanged.InvokeAsync(SearchApproach);
-    }
+    await OnSearchResults.InvokeAsync(new List<RecipeSearchResponse> { response });
+  }
 
-    private async Task HandleGetAllRecipes()
-    {
-        var results = await RecipeApiClient.GetRecipesAsync();
-        await OnSearchResults.InvokeAsync(results.ToList());
-    }
+  private async Task HandleGetAllRecipes()
+  {
+    var results = await RecipeApiClient.GetRecipesAsync();
+    await OnSearchResults.InvokeAsync(results.ToList());
+  }
 
-    private async Task HandleClear()
-    {
-        await RecipeKeyChanged.InvokeAsync(string.Empty);
-        await SearchStringChanged.InvokeAsync(string.Empty);
-        await OnClearRequested.InvokeAsync();
-    }
+  private async Task HandleClear()
+  {
+    _localSearchString = string.Empty;
+    await RecipeKeyChanged.InvokeAsync(string.Empty);
+    await SearchStringChanged.InvokeAsync(string.Empty);
+    await OnClearRequested.InvokeAsync();
+  }
 }

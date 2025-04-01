@@ -2,36 +2,36 @@
 
 @if (Recipes.Count > 0)
 {
-    <h3 class="mt-5">Results</h3>
-    <div class="d-flex flex-wrap">
-        @foreach (var recipe in Recipes)
-        {
-            <RecipeCard Recipe="@recipe" EditRecipe="HandleEditRecipe" />
-        }
-    </div>
+  <h3 class="mt-5">Results</h3>
+  <div class="d-flex flex-wrap">
+    @foreach (var recipe in Recipes)
+    {
+      <RecipeCard Recipe="@recipe" EditRecipe="HandleEditRecipe" />
+    }
+  </div>
 }
 
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
-    <pre>@ErrorMessage</pre>
+  <pre>@ErrorMessage</pre>
 }
 
 @code {
-    [Parameter]
-    public List<RecipeSearchResponse> Recipes { get; set; } = new();
+  [Parameter]
+  public List<RecipeSearchResponse> Recipes { get; set; } = new();
 
-    [Parameter]
-    public string ErrorMessage { get; set; } = string.Empty;
+  [Parameter]
+  public string ErrorMessage { get; set; } = string.Empty;
 
-    [Parameter]
-    public EventCallback<Recipe> OnEditRequested { get; set; }
+  [Parameter]
+  public EventCallback<Recipe> OnEditRequested { get; set; }
 
-    private async Task HandleEditRecipe(string recipeKey)
+  private async Task HandleEditRecipe(string recipeKey)
+  {
+    var recipe = Recipes.FirstOrDefault(r => r.Key == recipeKey);
+    if (recipe != null)
     {
-        var recipe = Recipes.FirstOrDefault(r => r.Key == recipeKey);
-        if (recipe != null)
-        {
-            await OnEditRequested.InvokeAsync(recipe.AsRecipe());
-        }
+      await OnEditRequested.InvokeAsync(recipe.AsRecipe());
     }
+  }
 }

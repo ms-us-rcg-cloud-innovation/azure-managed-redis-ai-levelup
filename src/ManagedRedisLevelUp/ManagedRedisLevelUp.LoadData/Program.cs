@@ -1,4 +1,59 @@
-﻿using ManagedRedisLevelUp.ApiService.Services;
+﻿/*
+ * How to use this service
+ * 
+ * 1. Set Up User Secrets:
+ *    - Add your Azure OpenAI API key and endpoint to the user secrets. You can do this by running the following commands in your terminal:
+ *      dotnet user-secrets set "AOAI:KEY" "<your-azure-openai-key>"
+ *      dotnet user-secrets set "AOAI:ENDPOINT" "<your-azure-openai-endpoint>"
+ *      dotnet user-secrets set "AOAI:DEPLOYMENT_NAME" "<your-deployment-name>"
+ *      dotnet user-secrets set "ConnectionStrings:REDIS" "<your-redis-connection-string>"
+ * 
+ * 2. Prepare the JSON File:
+ *    - Ensure you have a `recipes.json` file in the same directory as the executable. This file should contain the recipes data in JSON format.
+ * 
+ * 3. Run the Program:
+ *    - Execute the program by running the following command in your terminal:
+ *      dotnet run
+ * 
+ * 4. Program Execution:
+ *    - The program will read the `recipes.json` file, parse the recipes, and upload them to the Redis database.
+ *    - It will also set up the necessary indices and vectors for the recipes.
+ * 
+ * 5. Output:
+ *    - After successful execution, the program will output the total number of records upserted.
+ * 
+ * Example `recipes.json` File:
+ * 
+ * [
+ *   {
+ *     "Key": "1",
+ *     "Name": "Spaghetti Bolognese",
+ *     "Submitted": "2023-01-01T00:00:00Z",
+ *     "TotalTimeInMinutes": 45,
+ *     "Steps": ["Boil water", "Cook pasta", "Prepare sauce"],
+ *     "Description": "A classic Italian pasta dish.",
+ *     "Ingredients": ["Pasta", "Tomato sauce", "Ground beef"]
+ *   },
+ *   {
+ *     "Key": "2",
+ *     "Name": "Chicken Curry",
+ *     "Submitted": "2023-01-02T00:00:00Z",
+ *     "TotalTimeInMinutes": 60,
+ *     "Steps": ["Cook chicken", "Prepare curry sauce", "Serve with rice"],
+ *     "Description": "A spicy and flavorful chicken curry.",
+ *     "Ingredients": ["Chicken", "Curry powder", "Coconut milk"]
+ *   }
+ * ]
+ * 
+ * Values to Set:
+ * - AOAI:KEY: Your Azure OpenAI API key.
+ * - AOAI:ENDPOINT: Your Azure OpenAI endpoint.
+ * - AOAI:DEPLOYMENT_NAME: Your Azure OpenAI deployment name.
+ * - ConnectionStrings:REDIS: Your Redis connection string.
+ */
+
+
+using ManagedRedisLevelUp.ApiService.Services;
 using ManagedRedisLevelUp.Shared;
 using Microsoft.Extensions.Configuration;
 using Redis.OM;
@@ -59,7 +114,6 @@ class Program
   /// Read from local JSON file and parse into List<Recipe>
   /// </summary>
   /// <returns></returns>
-  /// <exception cref="InvalidOperationException"></exception>
   private static List<Recipe> GetRecipesFromFile(string jsonFilePath)
   {
     using StreamReader reader = new(jsonFilePath);
