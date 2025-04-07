@@ -9,15 +9,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ManagedRedisLevelUp.ServiceDefaults\ManagedRedisLevelUp.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\ManagedRedisLevelUp.Shared\ManagedRedisLevelUp.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" Version="9.0.0" />
+    <PackageReference Include="Aspire.Azure.AI.OpenAI" Version="9.0.0-preview.5.24551.3" />
+    <PackageReference Include="Aspire.Azure.Security.KeyVault" Version="9.0.0" />
+    <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.31.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.31.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.31.0-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Redis" Version="1.31.0-preview" />
+    <PackageReference Include="Redis.OM" Version="0.7.6" />
+    <PackageReference Include="Redis.OM.Vectorizers" Version="0.7.6" />
   </ItemGroup>
 
 </Project>

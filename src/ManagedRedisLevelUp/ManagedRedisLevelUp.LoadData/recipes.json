@@ -1,0 +1,553 @@
+[
+  {
+    "Key": "d3b07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Spaghetti Carbonara",
+    "Submitted": "2023-10-01T12:00:00",
+    "TotalTimeInMinutes": 30,
+    "Steps": [
+      "Boil water",
+      "Cook spaghetti",
+      "Fry pancetta",
+      "Mix eggs and cheese",
+      "Combine all ingredients"
+    ],
+    "Description": "A classic Italian pasta dish made with eggs, cheese, pancetta, and pepper.",
+    "Ingredients": [
+      "Spaghetti",
+      "Eggs",
+      "Pancetta",
+      "Parmesan cheese",
+      "Black pepper"
+    ]
+  },
+  {
+    "Key": "e4b07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Chicken Curry",
+    "Submitted": "2023-10-02T12:00:00",
+    "TotalTimeInMinutes": 45,
+    "Steps": [
+      "Marinate chicken",
+      "Cook onions",
+      "Add spices",
+      "Add chicken",
+      "Simmer with coconut milk"
+    ],
+    "Description": "A flavorful curry dish made with chicken, spices, and coconut milk.",
+    "Ingredients": [
+      "Chicken",
+      "Onions",
+      "Garlic",
+      "Ginger",
+      "Coconut milk",
+      "Curry powder"
+    ]
+  },
+  {
+    "Key": "f5b07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Beef Tacos",
+    "Submitted": "2023-10-03T12:00:00",
+    "TotalTimeInMinutes": 20,
+    "Steps": [
+      "Cook ground beef",
+      "Add taco seasoning",
+      "Prepare toppings",
+      "Warm tortillas",
+      "Assemble tacos"
+    ],
+    "Description": "Delicious tacos made with seasoned ground beef and various toppings.",
+    "Ingredients": [
+      "Ground beef",
+      "Taco seasoning",
+      "Tortillas",
+      "Lettuce",
+      "Tomatoes",
+      "Cheese"
+    ]
+  },
+  {
+    "Key": "a6b07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Vegetable Stir Fry",
+    "Submitted": "2023-10-04T12:00:00",
+    "TotalTimeInMinutes": 25,
+    "Steps": [
+      "Chop vegetables",
+      "Heat oil in a pan",
+      "Add vegetables",
+      "Stir fry with sauce",
+      "Serve with rice"
+    ],
+    "Description": "A quick and healthy stir fry made with a variety of fresh vegetables.",
+    "Ingredients": [
+      "Broccoli",
+      "Carrots",
+      "Bell peppers",
+      "Soy sauce",
+      "Garlic",
+      "Ginger"
+    ]
+  },
+  {
+    "Key": "b7b07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Chocolate Chip Cookies",
+    "Submitted": "2023-10-05T12:00:00",
+    "TotalTimeInMinutes": 35,
+    "Steps": [
+      "Preheat oven",
+      "Mix dry ingredients",
+      "Cream butter and sugar",
+      "Add eggs and vanilla",
+      "Combine all ingredients",
+      "Bake cookies"
+    ],
+    "Description": "Classic chocolate chip cookies with a crispy edge and chewy center.",
+    "Ingredients": [
+      "Flour",
+      "Baking soda",
+      "Salt",
+      "Butter",
+      "Sugar",
+      "Brown sugar",
+      "Eggs",
+      "Vanilla extract",
+      "Chocolate chips"
+    ]
+  },
+  {
+    "Key": "c8b07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Margarita Pizza",
+    "Submitted": "2023-10-06T12:00:00",
+    "TotalTimeInMinutes": 40,
+    "Steps": [
+      "Preheat oven",
+      "Prepare dough",
+      "Spread tomato sauce",
+      "Add mozzarella cheese",
+      "Bake pizza"
+    ],
+    "Description": "A simple and delicious pizza topped with tomato sauce, mozzarella cheese, and fresh basil.",
+    "Ingredients": [
+      "Pizza dough",
+      "Tomato sauce",
+      "Mozzarella cheese",
+      "Fresh basil",
+      "Olive oil"
+    ]
+  },
+  {
+    "Key": "d9b07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Caesar Salad",
+    "Submitted": "2023-10-07T12:00:00",
+    "TotalTimeInMinutes": 15,
+    "Steps": [
+      "Prepare dressing",
+      "Chop lettuce",
+      "Add croutons",
+      "Toss salad with dressing",
+      "Top with Parmesan cheese"
+    ],
+    "Description": "A classic Caesar salad with crisp romaine lettuce, croutons, and a creamy dressing.",
+    "Ingredients": [
+      "Romaine lettuce",
+      "Croutons",
+      "Parmesan cheese",
+      "Caesar dressing",
+      "Lemon juice"
+    ]
+  },
+  {
+    "Key": "eab07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Grilled Cheese Sandwich",
+    "Submitted": "2023-10-08T12:00:00",
+    "TotalTimeInMinutes": 10,
+    "Steps": [
+      "Butter bread",
+      "Add cheese slices",
+      "Grill sandwich",
+      "Flip and grill other side",
+      "Serve hot"
+    ],
+    "Description": "A classic grilled cheese sandwich with melted cheese between two slices of buttery, toasted bread.",
+    "Ingredients": [
+      "Bread",
+      "Cheese slices",
+      "Butter"
+    ]
+  },
+  {
+    "Key": "fbb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Pancakes",
+    "Submitted": "2023-10-09T12:00:00",
+    "TotalTimeInMinutes": 20,
+    "Steps": [
+      "Mix dry ingredients",
+      "Add wet ingredients",
+      "Heat griddle",
+      "Pour batter",
+      "Flip pancakes",
+      "Serve with syrup"
+    ],
+    "Description": "Fluffy pancakes perfect for breakfast, served with butter and syrup.",
+    "Ingredients": [
+      "Flour",
+      "Baking powder",
+      "Salt",
+      "Milk",
+      "Eggs",
+      "Butter",
+      "Maple syrup"
+    ]
+  },
+  {
+    "Key": "0cb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Tomato Soup",
+    "Submitted": "2023-10-10T12:00:00",
+    "TotalTimeInMinutes": 30,
+    "Steps": [
+      "Sauté onions and garlic",
+      "Add tomatoes",
+      "Simmer with broth",
+      "Blend soup",
+      "Season with salt and pepper",
+      "Serve hot"
+    ],
+    "Description": "A comforting tomato soup made with fresh tomatoes, onions, and garlic.",
+    "Ingredients": [
+      "Tomatoes",
+      "Onions",
+      "Garlic",
+      "Vegetable broth",
+      "Salt",
+      "Pepper"
+    ]
+  },
+  {
+    "Key": "1db07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Lasagna",
+    "Submitted": "2023-10-11T12:00:00",
+    "TotalTimeInMinutes": 90,
+    "Steps": [
+      "Preheat oven",
+      "Cook lasagna noodles",
+      "Prepare meat sauce",
+      "Layer noodles, sauce, and cheese",
+      "Bake lasagna"
+    ],
+    "Description": "A hearty Italian dish made with layers of lasagna noodles, meat sauce, and cheese.",
+    "Ingredients": [
+      "Lasagna noodles",
+      "Ground beef",
+      "Tomato sauce",
+      "Ricotta cheese",
+      "Mozzarella cheese",
+      "Parmesan cheese"
+    ]
+  },
+  {
+    "Key": "2eb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Greek Salad",
+    "Submitted": "2023-10-12T12:00:00",
+    "TotalTimeInMinutes": 15,
+    "Steps": [
+      "Chop vegetables",
+      "Prepare dressing",
+      "Toss vegetables with dressing",
+      "Add feta cheese and olives",
+      "Serve chilled"
+    ],
+    "Description": "A refreshing salad made with cucumbers, tomatoes, onions, olives, and feta cheese.",
+    "Ingredients": [
+      "Cucumbers",
+      "Tomatoes",
+      "Red onions",
+      "Kalamata olives",
+      "Feta cheese",
+      "Olive oil",
+      "Lemon juice",
+      "Oregano"
+    ]
+  },
+  {
+    "Key": "3fb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "BBQ Ribs",
+    "Submitted": "2023-10-13T12:00:00",
+    "TotalTimeInMinutes": 180,
+    "Steps": [
+      "Preheat grill",
+      "Season ribs",
+      "Grill ribs",
+      "Baste with BBQ sauce",
+      "Serve hot"
+    ],
+    "Description": "Tender and flavorful BBQ ribs cooked to perfection on the grill.",
+    "Ingredients": [
+      "Pork ribs",
+      "BBQ sauce",
+      "Salt",
+      "Pepper",
+      "Garlic powder",
+      "Onion powder"
+    ]
+  },
+  {
+    "Key": "4gb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Vegetable Soup",
+    "Submitted": "2023-10-14T12:00:00",
+    "TotalTimeInMinutes": 60,
+    "Steps": [
+      "Chop vegetables",
+      "Sauté onions and garlic",
+      "Add vegetables and broth",
+      "Simmer until vegetables are tender",
+      "Season with salt and pepper",
+      "Serve hot"
+    ],
+    "Description": "A healthy and hearty vegetable soup made with a variety of fresh vegetables.",
+    "Ingredients": [
+      "Carrots",
+      "Celery",
+      "Potatoes",
+      "Tomatoes",
+      "Green beans",
+      "Onions",
+      "Garlic",
+      "Vegetable broth",
+      "Salt",
+      "Pepper"
+    ]
+  },
+  {
+    "Key": "5hb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Apple Pie",
+    "Submitted": "2023-10-15T12:00:00",
+    "TotalTimeInMinutes": 75,
+    "Steps": [
+      "Preheat oven",
+      "Prepare pie crust",
+      "Slice apples",
+      "Mix apples with sugar and spices",
+      "Fill pie crust with apple mixture",
+      "Bake pie"
+    ],
+    "Description": "A classic apple pie with a flaky crust and a sweet, spiced apple filling.",
+    "Ingredients": [
+      "Pie crust",
+      "Apples",
+      "Sugar",
+      "Cinnamon",
+      "Nutmeg",
+      "Lemon juice"
+    ]
+  },
+  {
+    "Key": "6ib07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Alien Space Soup",
+    "Submitted": "2023-10-16T12:00:00",
+    "TotalTimeInMinutes": 50,
+    "Steps": [
+      "Gather ingredients from Mars",
+      "Boil space water",
+      "Add Martian vegetables",
+      "Simmer with moon dust",
+      "Serve in a UFO bowl"
+    ],
+    "Description": "A cosmic soup made with ingredients sourced from the far reaches of the galaxy.",
+    "Ingredients": [
+      "Martian carrots",
+      "Venusian potatoes",
+      "Saturnian onions",
+      "Moon dust",
+      "Space water"
+    ]
+  },
+  {
+    "Key": "7jb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Unicorn Rainbow Salad",
+    "Submitted": "2023-10-17T12:00:00",
+    "TotalTimeInMinutes": 20,
+    "Steps": [
+      "Chop rainbow vegetables",
+      "Mix with unicorn tears",
+      "Add glitter dressing",
+      "Toss salad",
+      "Serve with a sprinkle of magic"
+    ],
+    "Description": "A magical salad that brings a burst of color and whimsy to your plate.",
+    "Ingredients": [
+      "Rainbow carrots",
+      "Purple cabbage",
+      "Golden beets",
+      "Unicorn tears",
+      "Glitter dressing"
+    ]
+  },
+  {
+    "Key": "8kb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Dragon Fire Stew",
+    "Submitted": "2023-10-18T12:00:00",
+    "TotalTimeInMinutes": 120,
+    "Steps": [
+      "Catch a dragon",
+      "Roast dragon meat",
+      "Add fire peppers",
+      "Simmer with lava broth",
+      "Serve in a cauldron"
+    ],
+    "Description": "A fiery stew that will ignite your taste buds with its intense heat and mythical flavors.",
+    "Ingredients": [
+      "Dragon meat",
+      "Fire peppers",
+      "Lava broth",
+      "Phoenix feathers",
+      "Mystic herbs"
+    ]
+  },
+  {
+    "Key": "9lb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Wizard's Potion Pie",
+    "Submitted": "2023-10-19T12:00:00",
+    "TotalTimeInMinutes": 60,
+    "Steps": [
+      "Mix enchanted berries",
+      "Add a dash of fairy dust",
+      "Bake with a spell",
+      "Cool under a full moon",
+      "Serve with a chant"
+    ],
+    "Description": "A mystical pie that combines enchanted berries and fairy dust for a magical dessert experience.",
+    "Ingredients": [
+      "Enchanted berries",
+      "Fairy dust",
+      "Moon sugar",
+      "Wizard's crust",
+      "Magic essence"
+    ]
+  },
+  {
+    "Key": "0mb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Time Traveler's Tacos",
+    "Submitted": "2023-10-20T12:00:00",
+    "TotalTimeInMinutes": 30,
+    "Steps": [
+      "Travel to the past for ingredients",
+      "Cook with future spices",
+      "Assemble tacos in the present",
+      "Garnish with time crystals",
+      "Serve in a time machine"
+    ],
+    "Description": "Tacos that transcend time, combining flavors from the past, present, and future.",
+    "Ingredients": [
+      "Dinosaur meat",
+      "Future spices",
+      "Ancient tortillas",
+      "Time crystals",
+      "Temporal salsa"
+    ]
+  },
+  {
+    "Key": "1ab07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Dragon's Breath Ale",
+    "Submitted": "2023-10-21T12:00:00",
+    "TotalTimeInMinutes": 60,
+    "Steps": [
+      "Brew barley and hops",
+      "Add dragon's breath essence",
+      "Ferment for 30 days",
+      "Bottle the ale",
+      "Serve chilled"
+    ],
+    "Description": "A fiery ale with a hint of dragon's breath, perfect for warming up on a cold night.",
+    "Ingredients": [
+      "Barley",
+      "Hops",
+      "Dragon's breath essence",
+      "Water",
+      "Yeast"
+    ]
+  },
+  {
+    "Key": "2bb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Elven Lembas Bread",
+    "Submitted": "2023-10-22T12:00:00",
+    "TotalTimeInMinutes": 45,
+    "Steps": [
+      "Mix flour and honey",
+      "Add elven herbs",
+      "Knead the dough",
+      "Bake in a leaf-wrapped bundle",
+      "Cool and serve"
+    ],
+    "Description": "A nourishing bread made by elves, known to sustain travelers on long journeys.",
+    "Ingredients": [
+      "Flour",
+      "Honey",
+      "Elven herbs",
+      "Water",
+      "Yeast"
+    ]
+  },
+  {
+    "Key": "3cb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Dwarven Stew",
+    "Submitted": "2023-10-23T12:00:00",
+    "TotalTimeInMinutes": 120,
+    "Steps": [
+      "Chop root vegetables",
+      "Brown meat in a pot",
+      "Add vegetables and broth",
+      "Simmer for 2 hours",
+      "Serve with crusty bread"
+    ],
+    "Description": "A hearty stew made with root vegetables and meat, perfect for a dwarf's appetite.",
+    "Ingredients": [
+      "Root vegetables",
+      "Meat",
+      "Onions",
+      "Garlic",
+      "Broth",
+      "Salt",
+      "Pepper"
+    ]
+  },
+  {
+    "Key": "4db07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Halfling Honey Cakes",
+    "Submitted": "2023-10-24T12:00:00",
+    "TotalTimeInMinutes": 30,
+    "Steps": [
+      "Mix flour and honey",
+      "Add eggs and butter",
+      "Pour batter into molds",
+      "Bake until golden",
+      "Serve with a drizzle of honey"
+    ],
+    "Description": "Sweet and fluffy cakes made with honey, a favorite treat among halflings.",
+    "Ingredients": [
+      "Flour",
+      "Honey",
+      "Eggs",
+      "Butter",
+      "Baking powder"
+    ]
+  },
+  {
+    "Key": "5eb07384-d9a0-4c9b-8a0d-1a2b3c4d5e6f",
+    "Name": "Orcish Blood Sausage",
+    "Submitted": "2023-10-25T12:00:00",
+    "TotalTimeInMinutes": 90,
+    "Steps": [
+      "Grind meat and fat",
+      "Mix with spices and blood",
+      "Stuff into casings",
+      "Boil sausages",
+      "Grill and serve"
+    ],
+    "Description": "A robust and flavorful sausage made with a mix of meat, fat, and blood, favored by orcs.",
+    "Ingredients": [
+      "Meat",
+      "Fat",
+      "Blood",
+      "Spices",
+      "Casings"
+    ]
+  }
+]

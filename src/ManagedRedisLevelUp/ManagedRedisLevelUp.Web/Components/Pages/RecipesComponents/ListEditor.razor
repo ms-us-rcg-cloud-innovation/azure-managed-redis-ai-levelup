@@ -1,0 +1,50 @@
+@typeparam T
+
+<div class="my-2">
+  <label for="@Id">@Label:</label>
+  @for (int i = 0; i < Items.Count; i++)
+  {
+    var index = i;
+
+    <div class="input-group mb-2">
+      <input type="text" value="@Items[index]" @oninput="(e) => UpdateItem(e, index)" class="form-control" />
+      <button type="button" class="btn btn-danger" @onclick="() => RemoveItem(index)">Remove</button>
+    </div>
+  }
+  <button type="button" class="btn btn-sm btn-secondary" @onclick="AddItem">Add @Label.Trim('s')</button>
+</div>
+
+@code {
+  [Parameter]
+  public List<T> Items { get; set; } = new();
+
+  [Parameter]
+  public string Id { get; set; } = string.Empty;
+
+  [Parameter]
+  public string Label { get; set; } = string.Empty;
+
+  [Parameter]
+  public EventCallback<List<T>> ItemsChanged { get; set; }
+
+  private async Task AddItem()
+  {
+    Items.Add(default!);
+    await ItemsChanged.InvokeAsync(Items);
+  }
+
+  private async Task RemoveItem(int index)
+  {
+    Items.RemoveAt(index);
+    await ItemsChanged.InvokeAsync(Items);
+  }
+
+  private async Task UpdateItem(ChangeEventArgs e, int index)
+  {
+    if (typeof(T) == typeof(string))
+    {
+      Items[index] = (T)(object)e.Value!.ToString()!;
+      await ItemsChanged.InvokeAsync(Items);
+    }
+  }
+}

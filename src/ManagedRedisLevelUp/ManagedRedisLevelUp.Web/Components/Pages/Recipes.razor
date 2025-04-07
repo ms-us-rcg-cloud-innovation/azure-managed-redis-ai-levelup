@@ -1,0 +1,68 @@
+﻿@page "/"
+@page "/recipes"
+@rendermode InteractiveServer
+@using ManagedRedisLevelUp.Shared
+@using ManagedRedisLevelUp.Web.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using ManagedRedisLevelUp.Web.Components.Pages.RecipesComponents
+@inject RecipeApiClient RecipeApiClient
+
+<div class="container">
+  <h1 class="mb-4">Recipes</h1>
+
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <h2>Create or Edit Recipe</h2>
+      <RecipeForm Recipe="@_recipeState.CurrentRecipe"
+                  IsEditing="@_recipeState.IsEditing"
+                  OnRecipeSaved="HandleRecipeSaved" />
+    </div>
+
+    <div class="col-lg-6">
+      <h2>Find Recipes</h2>
+      <RecipeSearch RecipeKey="@_recipeState.RecipeKey"
+                    RecipeKeyChanged="(value) => _recipeState.RecipeKey = value"
+                    SearchString="@_recipeState.SearchString"
+                    SearchStringChanged="(value) => _recipeState.SearchString = value"
+                    SearchApproach="@_recipeState.SearchApproach"
+                    SearchApproachChanged="(value) => _recipeState.SearchApproach = value"
+                    OnSearchResults="HandleSearchResults"
+                    OnClearRequested="ClearResults" />
+    </div>
+  </div>
+
+  <RecipeResults Recipes="@_recipeState.RecipeList"
+                 ErrorMessage="@_recipeState.ErrorMessage"
+                 OnEditRequested="HandleEditRequested" />
+</div>
+
+@code {
+  private RecipeState _recipeState = new();
+
+  private void HandleRecipeSaved(Recipe recipe)
+  {
+    _recipeState.CurrentRecipe = new Recipe();
+    StateHasChanged();
+  }
+
+  private void HandleSearchResults(List<RecipeSearchResponse> results)
+  {
+    _recipeState.RecipeList.Clear();
+    _recipeState.RecipeList.AddRange(results);
+    _recipeState.ErrorMessage = string.Empty;
+    StateHasChanged();
+  }
+
+  private void HandleEditRequested(Recipe recipe)
+  {
+    _recipeState.CurrentRecipe = recipe;
+    StateHasChanged();
+  }
+
+  private void ClearResults()
+  {
+    _recipeState.Reset(preserveSearchTerms: true);
+    _recipeState.RecipeList.Clear();
+    StateHasChanged();
+  }
+}
